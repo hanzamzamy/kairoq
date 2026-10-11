@@ -12,7 +12,7 @@
 | `tests/python/` | Python tests: synthetic boards, importer cross-checks, validation report |
 | `testdata/` | exported test boards (`testdata/README.md`) |
 | `tools/` | scripts that produce test data, and benchmarks |
-| `docs/` | model specification, importer and viewer documentation, validation notes |
+| `docs/` | model specification, importer and viewer documentation, methods (`docs/methods/`), validation notes |
 
 ## Development build
 
@@ -47,6 +47,9 @@ rise against IPC-2152 data). These tools are development dependencies only.
 The full-wave comparisons in `tests/python/test_openems.py` run openEMS, a few minutes
 each, and only when `KAIROQ_OPENEMS_PYTHON` names a Python interpreter with the openEMS
 modules (CSXCAD, openEMS) and h5py; otherwise they are skipped.
+
+A change to a numerical method updates its derivation in `docs/methods/` in the same commit,
+with the source of any method taken from the literature in `docs/references.bib`.
 
 A result enters the documentation only with a test that checks it against a reference:
 an analytical solution, published data, an independent implementation or another export of

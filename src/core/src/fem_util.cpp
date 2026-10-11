@@ -190,8 +190,8 @@ std::size_t mark_and_seed(const std::vector<RefinePart>& parts, double eta2_tota
 
 namespace {
 using AmgBackend = amgcl::backend::builtin<double>;
-// Classical (Ruge-Stueben) coarsening suits the strongly graded adaptive meshes better
-// than smoothed aggregation (docs/validation/dc.md).
+// Classical (Ruge-Stueben) coarsening: on the DC benchmark boards it needs as many or fewer
+// iterations than smoothed aggregation (docs/validation/dc.md, "Performance").
 using AmgSolver = amgcl::make_solver<amgcl::amg<AmgBackend, amgcl::coarsening::ruge_stuben, amgcl::relaxation::spai0>,
                                      amgcl::solver::cg<AmgBackend>>;
 }  // namespace
@@ -234,8 +234,7 @@ SolveStats solve_spd(std::size_t nfree, const std::vector<std::ptrdiff_t>& ptr, 
                      std::vector<std::vector<double>>& x, double tolerance, int max_iterations) {
     SolveStats st;
     if (nfree == 0) return st;
-    // Classical (Ruge-Stueben) coarsening suits the strongly graded adaptive meshes
-    // better than smoothed aggregation (docs/validation/dc.md).
+    // Classical (Ruge-Stueben) coarsening, as in SpdSolver.
     using Backend = amgcl::backend::builtin<double>;
     using Solver = amgcl::make_solver<amgcl::amg<Backend, amgcl::coarsening::ruge_stuben, amgcl::relaxation::spai0>,
                                       amgcl::solver::cg<Backend>>;

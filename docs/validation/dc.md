@@ -130,6 +130,11 @@ triangulation's vertex insertion and quality refinement; meshing a plane in para
 would shorten that, at the cost of seams that must stay conforming under refinement, and
 is not done.
 
+The multigrid preconditioner uses classical (Ruge–Stüben) coarsening. With smoothed
+aggregation instead, the same solutions need 31 instead of 24 conjugate-gradient iterations
+on the synthetic power board and 30 in both cases on `cm5_minima`, with identical port
+voltages.
+
 ## The error estimate on more geometries
 
 The estimate is meant to bound the relative error of the dissipation by about its square.

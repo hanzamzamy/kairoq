@@ -130,7 +130,9 @@ Each analysis, its project-file keys and its limits are described in `docs/`: th
 
 ## Validation
 
-`docs/validation/` holds one note per analysis: what was compared, with which tolerance,
+`docs/methods/` derives each analysis from its physical model to the reported numbers,
+with the literature it builds on (`docs/references.bib`); the code implements those
+derivations. `docs/validation/` holds one note per analysis: what was compared, with which tolerance,
 and what is not validated: [import](docs/validation/importers.md),
 [DC](docs/validation/dc.md), [thermal](docs/validation/thermal.md),
 [heat sinks and transients](docs/validation/thermal-transients.md),
