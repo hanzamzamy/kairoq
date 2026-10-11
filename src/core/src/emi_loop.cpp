@@ -15,6 +15,9 @@
 #include <numeric>
 #include <atomic>
 #include <cmath>
+#include <version>
+#include <cstring>
+#include <cstdint>
 #include <complex>
 #include <map>
 #include <memory>
@@ -25,6 +28,25 @@
 namespace kairoq {
 
 namespace {
+
+// Adds v to x in place, safely against other threads: std::atomic_ref where the standard
+// library has it, otherwise a compare-and-swap on the value's bits (GCC and Clang builtins;
+// Apple's library lacks atomic_ref).
+inline void atomic_add(double& x, double v) {
+#if defined(__cpp_lib_atomic_ref) && !defined(KAIROQ_TEST_ATOMIC_FALLBACK)
+    std::atomic_ref<double>(x).fetch_add(v);
+#else
+    auto* p = reinterpret_cast<std::uint64_t*>(&x);
+    std::uint64_t old = __atomic_load_n(p, __ATOMIC_RELAXED), next = 0;
+    do {
+        double d;
+        std::memcpy(&d, &old, sizeof d);
+        d += v;
+        std::memcpy(&next, &d, sizeof next);
+    } while (!__atomic_compare_exchange_n(p, &old, next, true, __ATOMIC_RELAXED, __ATOMIC_RELAXED));
+#endif
+}
+
 
 using namespace detail;
 
@@ -1297,8 +1319,8 @@ double LoopSolver::solve(const Discretisation& D, LoopResult* out, std::vector<s
                     if (U.basis[j] < 0) continue;
                     const double v = kMu0Over4Pi * fi * U.sign[j] / (2.0 * U.area) * K[i][j];
                     const auto a = static_cast<std::size_t>(T.basis[i]), c = static_cast<std::size_t>(U.basis[j]);
-                    std::atomic_ref<double>(L[a * nb + c]).fetch_add(v);
-                    if (u != t) std::atomic_ref<double>(L[c * nb + a]).fetch_add(v);
+                    atomic_add(L[a * nb + c], v);
+                    if (u != t) atomic_add(L[c * nb + a], v);
                 }
             }
         }
