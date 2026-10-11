@@ -27,4 +27,5 @@ Fetched at build time at the pinned versions in `cmake/Dependencies.cmake`.
 | --- | --- | --- |
 | `viewer/vendor/three.module.js`, `three.core.js`, `OrbitControls.js` | [three.js](https://threejs.org) r186 (npm `three` 0.186.1), unmodified | MIT (`viewer/vendor/LICENSE-three.txt`) |
 | `testdata/kicad/*` | exports of KiCad 10.0.6 demonstration boards (`testdata/README.md`) | CC BY-SA 4.0; `cm5_minima` also CERN-OHL-S-2.0 |
+| `testdata/de10_interface/*` | IPC-2581 export of a board of the author (`testdata/de10_interface/SOURCE.txt`) | MIT |
 | `testdata/gerber2ems/*` | slices of the Antmicro Signal Integrity Test Board with VNA measurements, from antmicro/gerber2ems (`testdata/gerber2ems/SOURCE.txt`) | Apache-2.0 |

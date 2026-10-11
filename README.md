@@ -9,6 +9,16 @@ Every result it reports is checked against an analytical solution, published dat
 independent solver; the checks are in the test suite and summarised in the validation
 notes.
 
+![A four-layer board in the 3D view](docs/images/de10_geometry.webp)
+
+| temperature | impedance of the routed traces |
+| --- | --- |
+| ![Temperature of the board with its regulators and converter ICs as heat sources](docs/images/de10_thermal.webp) | ![Impedance of the USB, HDMI and clock traces](docs/images/de10_si.webp) |
+
+A four-layer interface board (`testdata/de10_interface`, analysed by
+`examples/de10_interface.yaml`): its stack in 3D, the temperature with assumed component
+powers in still air, and the impedance of its USB, HDMI and clock traces.
+
 ## What it computes
 
 | analysis | results | validated against |
@@ -87,13 +97,13 @@ An input is a canonical model, an IPC-2581 file, an ODB++ job, or fabrication fi
 1 µm); `--crop x0,y0,x1,y1` keeps the part of the board inside a rectangle (mm), with open
 edges through which no current or heat passes.
 
-For example, on the KiCad test board in `testdata/`:
+For example, on the boards in `testdata/`:
 
 ```
-kairoq view    testdata/kicad/cm5_minima/cm5_minima.ipc2581.zip
+kairoq view    testdata/de10_interface/de10_interface.ipc2581.zip
+kairoq thermal examples/de10_interface.yaml --view
+kairoq si      examples/de10_interface.yaml --view
 kairoq dc      examples/cm5_minima_5v.yaml --view
-kairoq thermal examples/cm5_minima_thermal.yaml
-kairoq si      examples/cm5_minima_si.yaml
 ```
 
 ```python
@@ -106,6 +116,9 @@ gnd = board.nets.index("GND")
 plane = shapely.wkb.loads(board.copper_wkb(2)[gnd])
 kairoq.serve(board)                    # viewer
 ```
+
+The 3D viewer shows the board and, with `--view`, the DC, thermal, EMI and impedance
+results on it; S-parameters, waveforms, eye diagrams and PDN impedance are written as files.
 
 Each analysis, its project-file keys and its limits are described in `docs/`: the viewer
 (`docs/viewer.md`), DC (`docs/solvers/dc.md`), thermal (`docs/solvers/thermal.md`), EMI

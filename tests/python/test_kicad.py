@@ -18,7 +18,7 @@ import shapely
 import shapely.wkb
 
 import kairoq
-from conftest import TESTDATA
+from conftest import ROOT, TESTDATA
 
 BOARDS = ["ecc83", "pic_programmer", "cm5_minima"]
 _cache: dict[str, tuple] = {}
@@ -233,3 +233,15 @@ def test_connectivity_nets_on_a_real_board(tmp_path):
     for r, d in pairs:
         joined.setdefault(d, set()).add(r)
     assert all(len(v) == 1 for v in joined.values())
+
+
+def test_de10_interface_board(validation):
+    """The author's four-layer board: the import, and the DC drop of the 3.3 V video rail of
+    examples/de10_interface.yaml (0.45 A from U305 to two LDOs and two converter ICs)."""
+    b = kairoq.open(TESTDATA / "de10_interface" / "de10_interface.ipc2581.zip")
+    assert (len(b.copper_layers), len(b.nets), len(b.drills), len(b.components)) == (4, 234, 619, 216)
+    r = kairoq.solve_dc(b, ROOT / "examples" / "de10_interface.yaml")
+    drops = {p: 3.3 - v["voltage_v"] for p, v in r.ports.items()}
+    assert max(drops.values()) < 0.01
+    validation.check("de10_interface +3V3_DOM2", "largest drop", max(drops.values()), 0.0049, rel=0.05, unit="V",
+                     source="the same solution (regression)")

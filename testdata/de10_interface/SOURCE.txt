@@ -1,0 +1,8 @@
+DE10-Lite interface board, four copper layers, 68.58 x 65.00 mm (JLCPCB stackup
+JLC04161H-7628): USB 2.0 hub, VGA-to-HDMI conversion and HDMI capture, an RP2354B
+microcontroller, a DAC and a DDS signal chain, a 9-28 V buck converter and an LDO tree.
+
+Exported with kicad-cli 10.0.7 as IPC-2581 revision C, zip-compressed, millimetres; the
+zone fill stored in the board file is used. The design files themselves are not included.
+
+Copyright (c) 2026 Rayhan Zamzamy. Licensed under the MIT licence.

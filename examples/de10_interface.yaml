@@ -1,0 +1,46 @@
+# The DE10-Lite interface board of testdata/de10_interface: DC drop of the 3.3 V video rail,
+# temperature, the input loop of the buck converter U303, return paths and impedance.
+# Currents and powers are assumed typical values, not measured.
+board: ../testdata/de10_interface/de10_interface.ipc2581.zip
+dc:
+  ports:
+    - {name: U305_OUT, component: U305, net: +3V3_DOM2, voltage_v: 3.3}
+    - {name: U304_IN,  component: U304, net: +3V3_DOM2, current_a: -0.15}
+    - {name: U306_IN,  component: U306, net: +3V3_DOM2, current_a: -0.15}
+    - {name: U501_3V3, component: U501, net: +3V3_DOM2, current_a: -0.05}
+    - {name: U502_3V3, component: U502, net: +3V3_DOM2, current_a: -0.10}
+thermal:
+  ambient_c: 25
+  top:    {convection_w_m2k: 10, emissivity: 0.9}
+  bottom: {convection_w_m2k: 10, emissivity: 0.9}
+  sources:
+    - {name: U303_buck,   component: U303, power_w: 0.15}
+    - {name: L301,        component: L301, power_w: 0.07}
+    - {name: U305_LDO,    component: U305, power_w: 0.77}
+    - {name: U304_LDO,    component: U304, power_w: 0.23}
+    - {name: U306_LDO,    component: U306, power_w: 0.32}
+    - {name: U501_MS9288C, component: U501, power_w: 0.50}
+    - {name: U502_MS2109, component: U502, power_w: 0.60}
+    - {name: U301_LDO,    component: U301, power_w: 0.20}
+    - {name: U302_LDO,    component: U302, power_w: 0.11}
+    - {name: U701_RP2354B, component: U701, power_w: 0.15}
+    - {name: U401_hub,    component: U401, power_w: 0.30}
+emi:
+  loops:
+    - name: BUCK_INPUT
+      elements:
+        - {from: U303.3, to: U303.1, esl_nh: 0.2}   # high-side and low-side switches
+        - {from: C309.2, to: C309.1, esl_nh: 0.3}   # 0402 ceramic input capacitor
+      waveform: {amplitude_a: 0.45, frequency_hz: 4.0e5, duty: 0.42, rise_ns: 5}
+  loop_settings: {distance_m: 3, max_triangles: 16000}
+  return_path: true
+  plates:
+    - {name: ENCLOSURE, face: bottom, gap_mm: 3.0, epsilon_r: 1.0}
+  switch_nodes:
+    - {net: Net-(U303-SW), plate: ENCLOSURE, dv_dt_v_per_ns: 1.2}
+si:
+  nets: ["*USB2*", "*HDMI_TMDS*", "*CLK_OUT*", "*HSTX_CLK"]
+  targets:
+    - {nets: ["*USB2*"], ohm: 90, differential: true}
+    - {nets: ["*HDMI*"], ohm: 100, differential: true}
+    - {nets: ["*CLK*"], ohm: 50}

@@ -31,6 +31,14 @@ Attribution: KiCad project and the authors of the demonstration boards,
 Pierluigi Colangeli. The complete source of each board is its directory under `demos/` at
 the tag 10.0.6.
 
+## A board of the author (`de10_interface/`)
+
+A four-layer DE10-Lite interface board (68.58 × 65.00 mm): USB 2.0 hub, VGA-to-HDMI
+conversion and HDMI capture, a microcontroller, a DAC and a DDS chain, a buck converter and
+an LDO tree. Only its IPC-2581 export is included (`de10_interface.ipc2581.zip`, kicad-cli
+10.0.7, revision C); origin and licence (MIT) in `de10_interface/SOURCE.txt`.
+`examples/de10_interface.yaml` analyses it, and the images in the README show it.
+
 ## Synthetic boards
 
 `tests/python/synthetic.py` writes fabrication sets with analytically known geometry
