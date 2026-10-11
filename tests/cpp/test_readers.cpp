@@ -72,6 +72,21 @@ TEST_CASE("IPC-D-356 records (KiCad, inch units)") {
     CHECK(n.points[1].hole_nm == 0.0);
 }
 
+TEST_CASE("IPC-D-356 net name aliases") {
+    // KiCad declares names longer than the 14-character field as "NNAME<alias> <name>",
+    // with '?' for spaces; other writers leave a space after NNAME.
+    const char* text =
+        "P  UNITS CUST 0\n"
+        "P  NNAMEM0000 /Analog?Subsystem/DAC_O0_HS\n"
+        "P  NNAME N0001 /Video/VGA_RED_TERMINATED\n"
+        "327M0000            U603  -10         A01X+022276Y+002550X0581Y0157R000 S2\n"
+        "327N0001            R501  -1          A01X+001000Y-000500X0100Y0200R000 S2\n999\n";
+    const Netlist n = parse_ipc356(text);
+    REQUIRE(n.points.size() == 2);
+    CHECK(n.points[0].net == "/Analog?Subsystem/DAC_O0_HS");
+    CHECK(n.points[1].net == "/Video/VGA_RED_TERMINATED");
+}
+
 TEST_CASE("Gerber job file stackup") {
     const char* text = R"({"Header":{"GenerationSoftware":{"Vendor":"KiCad","Application":"Pcbnew","Version":"10"}},
         "GeneralSpecs":{"ProjectId":{"Name":"demo"},"LayerNumber":2,"BoardThickness":1.6},

@@ -51,8 +51,9 @@ int clamp_layer(int l, int n) { return std::clamp(l, 1, std::max(n, 1)); }
 }  // namespace
 
 std::string normalise_net_name(const std::string& name) {
+    // Case-insensitive; IPC-D-356 fields hold no spaces, and writers put '?' in their place.
     std::string out = name;
-    for (auto& c : out) c = static_cast<char>(std::toupper(static_cast<unsigned char>(c)));
+    for (auto& c : out) c = c == ' ' ? '?' : static_cast<char>(std::toupper(static_cast<unsigned char>(c)));
     return out;
 }
 

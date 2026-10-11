@@ -139,11 +139,13 @@ Netlist parse_ipc356(std::string_view text) {
                 else
                     unit_nm = 2540.0;
             } else if (rest.rfind("NNAME", 0) == 0) {
-                std::istringstream ss(rest);
+                // "NNAME<alias> <name>" (KiCad) or "NNAME <alias> <name>": a net name too long
+                // for the 14-character field, used by its alias in the records.
+                std::istringstream ss(rest.substr(5));
                 std::string alias, name;
                 ss >> alias;
                 std::getline(ss, name);
-                aliases[alias] = trim(name);
+                if (!alias.empty()) aliases[alias] = trim(name);
             }
             continue;
         }
