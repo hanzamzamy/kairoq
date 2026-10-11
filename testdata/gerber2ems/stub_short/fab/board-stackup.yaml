@@ -1,0 +1,12 @@
+# Top of the stack as gerber2ems gives it (stackup.json); the layers below the first inner
+# plane are assumed.
+layers:
+  - {name: F.Mask, type: soldermask, thickness_mm: 0.01}
+  - {name: F.Cu, type: copper, thickness_mm: 0.035}
+  - {name: dielectric 1, type: dielectric, thickness_mm: 0.12, material: FR-4, epsilon_r: 4.18, loss_tangent: 0.02}
+  - {name: In1.Cu, type: copper, thickness_mm: 0.035}
+  - {name: core, type: dielectric, thickness_mm: 1.2, material: FR-4, epsilon_r: 4.5, loss_tangent: 0.02}
+  - {name: In2.Cu, type: copper, thickness_mm: 0.035}
+  - {name: dielectric 3, type: dielectric, thickness_mm: 0.12, material: FR-4, epsilon_r: 4.18, loss_tangent: 0.02}
+  - {name: B.Cu, type: copper, thickness_mm: 0.035}
+  - {name: B.Mask, type: soldermask, thickness_mm: 0.01}

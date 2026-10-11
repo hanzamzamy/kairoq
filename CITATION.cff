@@ -1,0 +1,12 @@
+cff-version: 1.2.0
+message: If you use this software in published work, please cite it as below.
+title: KairoQ
+abstract: Electrical, thermal, electromagnetic and signal-integrity analysis of printed circuit boards from fabrication data.
+type: software
+authors:
+  - family-names: Zamzamy
+    given-names: Rayhan
+    orcid: "https://orcid.org/0009-0006-3192-0231"
+license: GPL-3.0-or-later
+version: 0.1.0
+repository-code: https://github.com/hanzamzamy/kairoq

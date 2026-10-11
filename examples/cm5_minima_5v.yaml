@@ -1,0 +1,10 @@
+# 3 A drawn by the compute module from the 5 V input connector, supply and return.
+board: ../testdata/kicad/cm5_minima/gerber
+dc:
+  temperature_c: 20
+  plating_thickness_um: 18
+  ports:
+    - {name: VIN,     component: J101,      net: +5V, voltage_v: 5.0}
+    - {name: LOAD,    component: Module301, net: +5V, current_a: -3.0}
+    - {name: GND_IN,  component: J101,      net: GND, voltage_v: 0.0}
+    - {name: GND_RET, component: Module302, net: GND, current_a: 3.0}

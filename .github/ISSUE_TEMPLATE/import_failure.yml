@@ -1,0 +1,23 @@
+name: Import failure
+description: A board does not import, or imports wrongly.
+labels: [importer]
+body:
+  - type: input
+    attributes:
+      label: Design program and version
+      description: For example KiCad 10.0.6, Altium Designer 25, Allegro 23.1.
+    validations: {required: true}
+  - type: dropdown
+    attributes:
+      label: Format
+      options: [IPC-2581, ODB++, Gerber X2 and Excellon, other]
+    validations: {required: true}
+  - type: textarea
+    attributes:
+      label: What happens
+      description: The output of `kairoq info` on the input, and what is missing or wrong.
+    validations: {required: true}
+  - type: textarea
+    attributes:
+      label: Files
+      description: Attach the export if it can be shared. Attachments are public.

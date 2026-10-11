@@ -1,0 +1,18 @@
+name: Result disagrees with a reference
+description: A result differs from a measurement, a closed form or another solver.
+labels: [accuracy]
+body:
+  - type: textarea
+    attributes:
+      label: What was analysed
+      description: Board (or a minimal one that shows it), project file, command and version.
+    validations: {required: true}
+  - type: textarea
+    attributes:
+      label: Result and reference
+      description: The value reported, the reference value and where the reference comes from (measurement setup, formula, solver and its settings).
+    validations: {required: true}
+  - type: textarea
+    attributes:
+      label: Files
+      description: Attach the fabrication data if it can be shared. Attachments are public.

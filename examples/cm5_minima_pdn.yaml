@@ -1,0 +1,15 @@
+# Impedance of the +5 V distribution of the cm5_minima carrier as the CM5 module sees it:
+# the +5 V plane (L4) between ground planes (L3, L5), the USB-C input as the source, and
+# every other part between +5 V and GND taken as a 10 uF ceramic capacitor.
+# kairoq pdn examples/cm5_minima_pdn.yaml -o out/
+board: ../testdata/kicad/cm5_minima/cm5_minima.ipc2581.zip
+pdn:
+  power_net: +5V
+  ground_net: GND
+  f_min_hz: 1e5
+  f_max_hz: 2e9
+  points: 200
+  target_ohm: 0.1
+  loads: [Module301]
+  regulator: {component: J101, r_mohm: 20, l_nh: 2}
+  other_capacitors: {c_uf: 10, esr_mohm: 5, esl_nh: 0.5}

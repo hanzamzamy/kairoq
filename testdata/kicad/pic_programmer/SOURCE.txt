@@ -1,0 +1,4 @@
+source: KiCad 10.0.6, demos/pic_programmer/pic_programmer.kicad_pcb (https://gitlab.com/kicad/code/kicad)
+exported with: kicad-cli 10.0.6 (tools/export_kicad_demos.sh)
+licence: CC BY-SA 4.0, the licence of the KiCad demo files (LICENSE.README of the KiCad source)
+changes: exported to fabrication formats on 2026-10-07; no design changes

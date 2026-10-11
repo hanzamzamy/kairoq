@@ -1,0 +1,17 @@
+# EMI estimates for the cm5_minima carrier: the input loop of the 3.3 V converter U702
+# (input capacitor C706, the converter between its input and ground pins), the return
+# paths of all traces, and the switch node over an enclosure plate under the board.
+board: ../testdata/kicad/cm5_minima/gerber
+emi:
+  loops:
+    - name: U702_INPUT
+      elements:
+        - {from: U702.3, to: U702.9, esl_nh: 0.2}   # high-side and low-side switches
+        - {from: C706.2, to: C706.1, esl_nh: 0.4}   # 0805 ceramic capacitor
+      waveform: {amplitude_a: 2.0, frequency_hz: 1.5e6, duty: 0.66, rise_ns: 2}
+  loop_settings: {distance_m: 3, frequencies_hz: [1e3, 1e5, 1e6, 1e7, 1e8]}
+  return_path: true
+  plates:
+    - {name: ENCLOSURE, face: bottom, gap_mm: 1.0, epsilon_r: 1.0}
+  switch_nodes:
+    - {net: /PCIe-M2/M2_LX, plate: ENCLOSURE, dv_dt_v_per_ns: 2.5}

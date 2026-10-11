@@ -1,0 +1,4 @@
+Reference,Value,Power (W),Rjc (K/W)
+U702,AP3441SHE-7B buck converter,0.6,15
+L701,2.2 uH inductor,0.25,
+"U701, U405",load switches,80 mW,

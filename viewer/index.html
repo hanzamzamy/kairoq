@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>kairoq</title>
+<link rel="stylesheet" href="style.css">
+<script type="importmap">
+{ "imports": {
+    "three": "./vendor/three.module.js",
+    "three/addons/controls/OrbitControls.js": "./vendor/OrbitControls.js"
+} }
+</script>
+</head>
+<body>
+<aside id="panel">
+  <h1 id="title">kairoq</h1>
+  <div id="meta"></div>
+
+  <section>
+    <h2>Layers</h2>
+    <div id="layers"></div>
+  </section>
+
+  <section id="solution" hidden>
+    <h2>DC solution</h2>
+    <label>field
+      <select id="field">
+        <option value="">none</option>
+        <option value="voltage">voltage (V)</option>
+        <option value="current_density">current density (A/mm²)</option>
+        <option value="power_density">power density (W/mm²)</option>
+        <option value="temperature">temperature (°C)</option>
+        <option value="loop_current">loop current (A/mm per A)</option>
+      </select></label>
+    <label id="loop-row" hidden>loop <select id="loop"></select></label>
+    <label><input type="checkbox" id="field-log"> logarithmic scale</label>
+    <canvas id="legend" width="240" height="14"></canvas>
+    <div class="row legend-labels"><span id="legend-min"></span><span id="legend-max"></span></div>
+    <div id="time-row" class="row" hidden>
+      <label>time <input type="range" id="time" min="0" max="0" step="1" value="0"></label>
+      <span id="time-value"></span>
+    </div>
+    <canvas id="history" width="240" height="130" hidden></canvas>
+    <div id="probe"></div>
+    <table id="ports"></table>
+    <div id="dc-meta"></div>
+  </section>
+
+  <section id="si" hidden>
+    <h2>Signal integrity</h2>
+    <label>tracks
+      <select id="si-quantity">
+        <option value="z0">impedance (Ω)</option>
+        <option value="zd">differential impedance (Ω)</option>
+        <option value="">not coloured</option>
+      </select></label>
+    <canvas id="si-legend" class="legend" width="240" height="14"></canvas>
+    <div class="row legend-labels"><span id="si-min"></span><span id="si-max"></span></div>
+    <canvas id="si-profile" width="240" height="130" hidden></canvas>
+    <div id="si-net"></div>
+    <div class="table-scroll"><table id="si-nets"></table></div>
+    <div id="si-meta"></div>
+  </section>
+
+  <section>
+    <h2>Colour</h2>
+    <label><input type="radio" name="colour" value="layer" checked> by layer</label>
+    <label><input type="radio" name="colour" value="net"> by net</label>
+  </section>
+
+  <section>
+    <h2>Net</h2>
+    <input id="net-search" list="net-list" placeholder="net name" autocomplete="off">
+    <datalist id="net-list"></datalist>
+    <div class="row">
+      <button id="net-clear">Clear</button>
+      <span id="net-info"></span>
+    </div>
+  </section>
+
+  <section>
+    <h2>Section</h2>
+    <label><input type="checkbox" id="section-on"> cut along
+      <select id="section-axis"><option value="x">x</option><option value="y">y</option></select></label>
+    <input type="range" id="section-pos" min="0" max="1000" value="500">
+    <div id="section-value"></div>
+  </section>
+
+  <section>
+    <h2>View</h2>
+    <div class="row">
+      <button id="view-top">Top</button>
+      <button id="view-bottom">Bottom</button>
+      <button id="view-iso">3D</button>
+    </div>
+    <label>vertical scale
+      <select id="z-scale"><option selected>1</option><option>5</option><option>10</option><option>20</option></select></label>
+  </section>
+
+  <section id="warnings-section" hidden>
+    <h2>Import warnings</h2>
+    <ul id="warnings"></ul>
+  </section>
+</aside>
+<main>
+  <canvas id="view"></canvas>
+  <div id="status"></div>
+  <div id="loading">loading</div>
+</main>
+<script type="module" src="main.js"></script>
+</body>
+</html>

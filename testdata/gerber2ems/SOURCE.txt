@@ -1,0 +1,12 @@
+Origin: antmicro/gerber2ems, https://github.com/antmicro/gerber2ems, commit
+3d5345508e8914fe16f059c5c8e9afbcbde53efd, directories examples/stub_short and
+examples/stub_long: fabrication files of slices of the Antmicro Signal Integrity Test
+Board and their one-port VNA measurements (vna.csv: S11 and Z at port SP1, port SP2
+loaded, 0.2 to 6 GHz).
+
+Licence: Apache License 2.0 (LICENSE, copied from the repository). Copyright Antmicro.
+
+Added here: fab/board-stackup.yaml, a stackup of the four copper layers. Its top
+(mask, 35 um copper, 0.12 mm of FR-4 with relative permittivity 4.18 and loss tangent
+0.02, the first inner layer) is that of fab/stackup.json; the layers below the first inner
+plane are assumed. No other file was changed.

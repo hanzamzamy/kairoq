@@ -1,0 +1,32 @@
+# Impedance of the high-speed pairs of the cm5_minima carrier, against the net classes of
+# the design: 100 ohm differential for Ethernet, HDMI and MIPI D-PHY, 90 ohm for USB and
+# PCIe. The IPC-2581 export carries the stackup with its permittivities.
+board: ../testdata/kicad/cm5_minima/cm5_minima.ipc2581.zip
+si:
+  nets: ["*_P", "*_N"]
+  targets:
+    - {nets: ["*USB*", "*PCIE*"], ohm: 90, differential: true}
+    - {ohm: 100, differential: true}
+  # The PCIe transmit pair from the CM5 connector to the M.2 connector, as a four-port:
+  # kairoq sparams examples/cm5_minima_si.yaml -o out/
+  channels:
+    - name: PCIE_TX
+      ports: [Module302.122, Module302.124, J701.47, J701.49]
+      differential: [[1, 2], [3, 4]]
+  network: {f_max_hz: 20e9, points: 400}
+  # PRBS7 at 2.5 Gbit/s into the transmit pair's positive member, single-ended through
+  # 50 ohm, the other ends terminated with 50 ohm (the sweep's 50 MHz steps allow 10 ns):
+  # kairoq waveforms examples/cm5_minima_si.yaml -o out/
+  simulations:
+    - name: TX_P_PRBS
+      channel: PCIE_TX
+      drivers: [{port: 1, pattern: prbs7, bit_rate: 2.5e9, bits: 20, v_high: 0.8, r_ohm: 50, rise_ps: 60}]
+      receivers: [{port: 2, r_ohm: 50}, {port: 3, r_ohm: 50}, {port: 4, r_ohm: 50}]
+  # Eyes of the transmit pair at the PCIe Gen2 and Gen3 rates: 0.8 V of differential swing
+  # behind 50 ohm per leg, 50 ohm per leg at the far end, with noise and jitter; Gen3 with
+  # 3.5 dB of transmit de-emphasis:
+  # kairoq eye examples/cm5_minima_si.yaml -o out/
+  eyes:
+    - {name: TX_5G, channel: PCIE_TX, tx: [1, 2], rx: [3, 4], bit_rate: 5e9, swing_v: 0.8, rise_ps: 50, noise_mv: 2, rj_ps: 1, dj_ps: 10}
+    - {name: TX_8G, channel: PCIE_TX, tx: [1, 2], rx: [3, 4], bit_rate: 8e9, swing_v: 0.8, rise_ps: 50, noise_mv: 2, rj_ps: 1, dj_ps: 10,
+       ffe: [0.8, -0.2]}

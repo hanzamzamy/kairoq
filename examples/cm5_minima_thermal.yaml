@@ -1,0 +1,15 @@
+# Temperature of the board with 3 A drawn by the compute module (Joule heat, coupled)
+# and 2 W dissipated in U1, in still air at 25 C.
+board: ../testdata/kicad/cm5_minima/gerber
+dc:
+  ports:
+    - {name: VIN,     component: J101,      net: +5V, voltage_v: 5.0}
+    - {name: LOAD,    component: Module301, net: +5V, current_a: -3.0}
+    - {name: GND_IN,  component: J101,      net: GND, voltage_v: 0.0}
+    - {name: GND_RET, component: Module302, net: GND, current_a: 3.0}
+thermal:
+  ambient_c: 25
+  top:    {convection_w_m2k: 10, emissivity: 0.9}
+  bottom: {convection_w_m2k: 10, emissivity: 0.9}
+  sources:
+    - {name: U1, component: U1, power_w: 2.0, junction_k_per_w: 10}
