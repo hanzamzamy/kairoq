@@ -9,6 +9,7 @@
 
 #include "layered_green.hpp"
 
+#include "bessel.hpp"
 #include "fem_util.hpp"
 
 #include <algorithm>
@@ -193,7 +194,7 @@ LayeredGreen::LayeredGreen(const Stratified& s, double z, double zs, double rho_
                 const double kk = k + w * gx[g];
                 const double v = f(kk);
                 peak = std::max(peak, std::abs(v));
-                part += gw[g] * w * v * (rho > 0 ? std::cyl_bessel_j(0.0, kk * rho) : 1.0);
+                part += gw[g] * w * v * (rho > 0 ? detail::bessel_j0(kk * rho) : 1.0);
             }
             sum += part;
             k += w;

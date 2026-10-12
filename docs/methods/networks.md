@@ -212,8 +212,8 @@ $2x K_0(x) I_0(x)$ is 1.067, near $x = 1.08$), the terms beyond $N$ are bounded 
 $$\frac{\mu}{\pi h} \sum_{n > N} \frac{4}{g_n^2} \frac{1.07}{2 g_n a} \leq \frac{1.07\, \mu h^2}{\pi^4 a N^2},$$
 
 which for $N = 4000$, $h \leq 2$ mm and $h/a \leq 100$ is below $10^{-15}$ H, negligible
-against the segments' inductance. $K_0 I_0$ is taken from the standard library below $x = 20$ and from
-its asymptotic series
+against the segments' inductance. $K_0 I_0$ is evaluated as in section 4.9 below $x = 20$ and
+from its asymptotic series
 $K_0(x)I_0(x) \approx \frac{1}{2x}\big(1 + \frac{1}{8x^2} + \frac{27}{128x^4}\big)$ above.
 
 ### 4.5 Segments outside the pairs
@@ -283,6 +283,22 @@ $H_0^{(2)}$ and $H_1^{(2)}$ are $J_n - jY_n$ from their power series for $|z| < 
 $10^{-17}$ of the sums, and from the Hankel asymptotic expansion (9.2.7–9.2.8) beyond, summed
 to its smallest term. At $|z| = 12$ the largest term of the series is about $4 \times 10^3$
 and the result about $5 \times 10^{-2}$, so about $10^{-11}$ relative accuracy remains.
+
+The functions of real argument are evaluated in the code itself, as the special functions
+of the C++ standard library are not available on every platform:
+
+- $J_0(x)$: its power series below 8 (largest term about 100); from 8 to 25 the
+  trapezoidal rule with 48 intervals on $J_0(x) = \frac1\pi\int_0^\pi \cos(x\sin t)\, dt$,
+  whose error for this periodic integrand is $2\sum_{m \geq 1} J_{96m}(x)$, negligible;
+  beyond, Hankel's asymptotic expansion (9.2.5, 9.2.9, 9.2.10) summed to its smallest term,
+  about $e^{-2x}$. Within $2 \times 10^{-14}$ of the Cephes values.
+- $I_0(x)$: its power series, of positive terms.
+- $K_0(x)$: the trapezoidal rule with step 0.1 on $K_0(x) = \int_0^\infty e^{-x\cosh t}\, dt$,
+  which converges exponentially as the integrand is analytic in a strip about the real
+  axis; within $3 \times 10^{-15}$ relative up to $x = 20$.
+
+$J_0$ also serves the layered Green's function (`docs/methods/capacitance.md`) and the
+patch antenna (`docs/methods/rf.md`).
 
 ## 5. Parts and loads
 
@@ -417,6 +433,7 @@ into a driven port are formed the same way from the column $S_{jd}$.
 | admittance blocks (3) | `network.cpp`, `stamp_abcd` |
 | via ladder: nodes, weights, (6), 4.5, 4.6 | `src/core/src/via_model.cpp`, `via_ladder` |
 | radial impedance (4), Hankel functions | `via_model.cpp`, `radial_self`, `radial_transfer`, `hankel2` |
+| $J_0$, $I_0$, $K_0$ of 4.9 | `src/core/src/bessel.hpp` |
 | shorted barrels (5), assembly 4.7 | `network.cpp`, `Channel::run`, case `Element::Cavity` |
 | finite pairs | `src/core/src/cavity.cpp`, `Cavity::impedance` |
 | coaxial model 4.8 | `network.cpp`, `Channel::run`, `Element::Barrel` |

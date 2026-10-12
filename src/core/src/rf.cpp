@@ -2,6 +2,8 @@
 // Balanis, Antenna Theory, chapter 14, and Jackson and Alexopoulos (1991) for the bandwidth.
 #include "kairoq/rf.hpp"
 
+#include "bessel.hpp"
+
 #include <nlohmann/json.hpp>
 
 #include <cmath>
@@ -68,7 +70,7 @@ PatchResult patch_antenna(const PatchSpec& sp) {
     const double i1 = simpson([&](double t) { const double v = slot(a, t); return v * v * std::pow(std::sin(t), 3); }, 0, kPiR, 4000);
     const double i12 = simpson([&](double t) {
         const double v = slot(a, t);
-        return v * v * std::cyl_bessel_j(0.0, k0 * l * std::sin(t)) * std::pow(std::sin(t), 3);
+        return v * v * detail::bessel_j0(k0 * l * std::sin(t)) * std::pow(std::sin(t), 3);
     }, 0, kPiR, 4000);
     r.g1_s = i1 / (120 * kPiR * kPiR);
     r.g12_s = i12 / (120 * kPiR * kPiR);

@@ -1,6 +1,7 @@
 // Physics-based via model parts (via_model.hpp).
 #include "via_model.hpp"
 
+#include "bessel.hpp"
 #include "kairoq/cross_section.hpp"
 #include "kairoq/geometry.hpp"
 
@@ -84,7 +85,7 @@ namespace {
 
 // K0(x) I0(x), the ring-to-ring kernel of a higher mode; asymptotic beyond x = 20.
 double k0i0(double x) {
-    if (x <= 20.0) return std::cyl_bessel_k(0.0, x) * std::cyl_bessel_i(0.0, x);
+    if (x <= 20.0) return detail::bessel_k0(x) * detail::bessel_i0(x);
     const double r = 1.0 / (8 * x * x);
     return 1.0 / (2 * x) * (1 + r + 27 * r * r / 2);
 }
