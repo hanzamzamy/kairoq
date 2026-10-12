@@ -291,7 +291,9 @@ two pads; a load is the admittance $1/R + j\omega C$ from a pad to ground. A two
 Touchstone part with reference resistance $R_0$ enters through
 $\mathbf{Y}_p = \frac{1}{R_0}(\mathbf{I} - \mathbf{S}_p)(\mathbf{I} + \mathbf{S}_p)^{-1}$, which
 follows from the definition of the scattering matrix (section 6.2) with $\mathbf{V} = \mathbf{Z}\mathbf{I}$
-solved for $\mathbf{Y} = \mathbf{Z}^{-1}$; its ports are referred to ground.
+solved for $\mathbf{Y} = \mathbf{Z}^{-1}$; its ports are referred to ground. Its data are
+interpolated to the sweep linearly in magnitude and in unwrapped phase, and held at the
+end values outside their range.
 
 ## 6. Solution
 
