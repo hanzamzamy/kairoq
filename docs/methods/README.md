@@ -15,6 +15,7 @@ literature are credited where they are used and listed in `docs/references.bib`.
 | --- | --- | --- | --- |
 | DC current | [dc.md](dc.md) | [solvers/dc.md](../solvers/dc.md) | [validation/dc.md](../validation/dc.md) |
 | EMI loops: inductance, impedance, field | [emi.md](emi.md) | [solvers/emi.md](../solvers/emi.md) | [validation/emi.md](../validation/emi.md) |
+| transmission lines | [si.md](si.md) | [solvers/si.md](../solvers/si.md) | [validation/si.md](../validation/si.md) |
 | switch-node capacitance | [capacitance.md](capacitance.md) | [solvers/emi.md](../solvers/emi.md) | [validation/emi.md](../validation/emi.md) |
 | thermal | [thermal.md](thermal.md) | [solvers/thermal.md](../solvers/thermal.md) | [validation/thermal.md](../validation/thermal.md), [thermal-transients.md](../validation/thermal-transients.md) |
 

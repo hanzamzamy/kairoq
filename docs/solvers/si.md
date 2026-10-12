@@ -64,8 +64,13 @@ order in the loss:
 
 $$G_{ij}(f) = \omega \varepsilon_0 \int \varepsilon''(f)\, \nabla\varphi_i \cdot \nabla\varphi_j \, dA.$$
 
-Over a frequency range, $C$ and $G/\omega$ are solved at two frequencies per decade and
-interpolated in $\log f$.
+Over a frequency range the field of the solution at the first frequency is kept: the
+energy of each dielectric region, $\varepsilon_0 \int_\text{region} \nabla\varphi_i \cdot \nabla\varphi_j\, dA$,
+is weighted with the region's $\varepsilon'(f)$ and $\varepsilon''(f)$ at each frequency. The
+line calculator's option `exact_dispersion` solves instead at two frequencies per decade and
+interpolates in $\log f$; the two agree within $2 \times 10^{-4}$ in capacitance on a masked
+microstrip from 1 MHz to 20 GHz (`docs/validation/networks.md`). The derivation is in
+`docs/methods/si.md`.
 
 ### Microstrip dispersion
 
