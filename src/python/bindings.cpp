@@ -12,6 +12,7 @@
 #include "kairoq/open.hpp"
 #include "kairoq/openems.hpp"
 #include "kairoq/pdn.hpp"
+#include "kairoq/provenance.hpp"
 #include "kairoq/server.hpp"
 #include "kairoq/si.hpp"
 #include "kairoq/thermal.hpp"
@@ -774,4 +775,14 @@ NB_MODULE(_core, m) {
         nb::arg("si").none() = nb::none());
 
     m.attr("MODEL_VERSION") = kModelVersion;
+    m.def("build_info", [] {
+        const BuildInfo b = build_info();
+        return nb::make_tuple(b.version, b.commit, b.compiler, b.platform);
+    });
+    m.def(
+        "provenance",
+        [](const std::vector<std::string>& inputs, const std::string& project, const Board* board) {
+            return provenance_json(make_provenance({}, inputs, project, board)).dump();
+        },
+        nb::arg("inputs"), nb::arg("project"), nb::arg("board").none());
 }

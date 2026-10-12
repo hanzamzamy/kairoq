@@ -3,8 +3,10 @@
 #include "kairoq/ipc2581.hpp"
 #include "kairoq/model_io.hpp"
 #include "kairoq/odbpp.hpp"
+#include "kairoq/provenance.hpp"
 
 #include <cstdio>
+#include <filesystem>
 #include <map>
 #include <sstream>
 #include <stdexcept>
@@ -27,6 +29,20 @@ Board read_board(const std::vector<std::string>& inputs, const ImportOptions& op
 
 Board open_board(const std::vector<std::string>& inputs, const ImportOptions& options) {
     Board b = read_board(inputs, options);
+    // A board read from a canonical model keeps the digests of the files it was imported from.
+    if (!(inputs.size() == 1 && is_board_model(inputs[0]))) {
+        b.source.digests.clear();
+        // By file name, as the board names the files it read: a model does not record where
+        // they lay on the machine that imported them.
+        auto add = [&](const std::string& path) {
+            FileDigest d = digest(path);
+            d.path = std::filesystem::path(path).lexically_normal().filename().string();
+            if (d.path.empty()) d.path = std::filesystem::path(path).lexically_normal().parent_path().filename().string();
+            b.source.digests.push_back(d);
+        };
+        for (const auto& path : inputs) add(path);
+        if (!options.stackup_yaml_path.empty()) add(options.stackup_yaml_path);
+    }
     return options.crop ? crop_board(b, *options.crop) : b;
 }
 

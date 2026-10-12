@@ -12,6 +12,14 @@ set(OPENEMS_DIR ${CMAKE_CURRENT_SOURCE_DIR}/resources/openems)
 set(OPENEMS_SOURCE ${CMAKE_CURRENT_BINARY_DIR}/openems_files.cpp)
 kairoq_embed_files(OUTPUT ${OPENEMS_SOURCE} NAME openems_files BASE ${OPENEMS_DIR} FILES ${OPENEMS_DIR}/simulate.py ${OPENEMS_DIR}/simulate_ports.py)
 
+set(BUILD_INFO_SOURCE ${CMAKE_CURRENT_BINARY_DIR}/build_info.cpp)
+add_custom_target(kairoq_build_info
+    COMMAND ${CMAKE_COMMAND} -DOUTPUT=${BUILD_INFO_SOURCE} -DSOURCE_DIR=${PROJECT_SOURCE_DIR} -DVERSION=${PROJECT_VERSION}
+            "-DCOMPILER=${CMAKE_CXX_COMPILER_ID} ${CMAKE_CXX_COMPILER_VERSION}" "-DPLATFORM=${CMAKE_SYSTEM_NAME} ${CMAKE_SYSTEM_PROCESSOR}"
+            -P ${PROJECT_SOURCE_DIR}/cmake/BuildInfo.cmake
+    BYPRODUCTS ${BUILD_INFO_SOURCE}
+    COMMENT "Recording the build information")
+
 add_library(kairoq_core STATIC
     src/archive.cpp
     src/board.cpp
@@ -51,9 +59,13 @@ add_library(kairoq_core STATIC
     src/layered_green.cpp
     src/emi_capacitance.cpp
     src/timedomain.cpp
+    src/provenance.cpp
+    src/sha256.cpp
+    ${BUILD_INFO_SOURCE}
     ${VIEWER_SOURCE}
     ${OPENEMS_SOURCE})
 add_library(kairoq::core ALIAS kairoq_core)
+add_dependencies(kairoq_core kairoq_build_info)
 
 target_include_directories(kairoq_core PUBLIC include)
 target_link_libraries(kairoq_core

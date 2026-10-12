@@ -160,6 +160,12 @@ json board_json(const Board& b, bool geometry) {
                    {"generator", b.source.generator},
                    {"files", b.source.files},
                    {"arc_tolerance_mm", to_mm(b.source.arc_tolerance_nm)}};
+    if (!b.source.digests.empty()) {
+        json d = json::array();
+        for (const auto& f : b.source.digests)
+            d.push_back({{"path", f.path}, {"sha256", f.sha256}, {"bytes", f.bytes}, {"directory", f.directory}});
+        j["source"]["digests"] = d;
+    }
 
     json layers = json::array();
     for (const auto& l : b.stackup) {
@@ -332,6 +338,8 @@ Board load_board(const std::string& path) {
     b.source.generator = src.value("generator", "");
     b.source.files = src.value("files", std::vector<std::string>{});
     b.source.arc_tolerance_nm = src.value("arc_tolerance_mm", 0.0) * kNmPerMm;
+    for (const auto& d : src.value("digests", json::array()))
+        b.source.digests.push_back({d.value("path", ""), d.value("sha256", ""), d.value("bytes", std::uintmax_t(0)), d.value("directory", false)});
 
     b.stackup_source = j.at("stackup").value("source", "");
     for (const auto& e : j.at("stackup").at("layers")) {

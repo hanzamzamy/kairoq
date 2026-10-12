@@ -81,6 +81,7 @@ unknown fields.
 | `generator` | string | software that wrote the source files, when they state it |
 | `files` | string list | file names read |
 | `arc_tolerance_mm` | number | largest distance between an arc and its chords |
+| `digests` | list | optional: the inputs the board was imported from, each `path` (file name), `sha256`, `bytes` and, for a directory, `directory: true` (`docs/provenance.md`) |
 
 ### stackup
 

@@ -7,6 +7,7 @@
 #include "kairoq/open.hpp"
 #include "kairoq/openems.hpp"
 #include "kairoq/pdn.hpp"
+#include "kairoq/provenance.hpp"
 #include "kairoq/server.hpp"
 #include "kairoq/si.hpp"
 #include "kairoq/emi.hpp"
@@ -56,6 +57,9 @@ options:
   --stackup <file.yaml>     stackup, overriding the job file
   --arc-tolerance <um>      largest chord deviation from arcs (default 1 um)
   --crop <x0,y0,x1,y1>      the part of the board inside this rectangle (mm); its edges are open
+  --record <file.json>      write the result's provenance (build, command, input digests) and summary
+
+An analysis with -o writes provenance.json beside its results (docs/provenance.md).
 )";
 
 struct Args {
@@ -64,6 +68,8 @@ struct Args {
     std::string output;
     std::string loop;
     std::string channel;
+    std::string record;
+    std::vector<std::string> command_line;
     bool json = false;
     bool view = false;
     bool run = false;
@@ -87,6 +93,7 @@ Args parse(int argc, char** argv) {
         else if (arg == "--loop") a.loop = value();
         else if (arg == "--run") a.run = true;
         else if (arg == "--channel") a.channel = value();
+        else if (arg == "--record") a.record = value();
         else if (arg == "--stackup") a.import.stackup_yaml_path = value();
         else if (arg == "--arc-tolerance") a.import.geometry.arc_tolerance_nm = std::stod(value()) * 1000.0;
         else if (arg == "--crop") {
@@ -106,7 +113,30 @@ Args parse(int argc, char** argv) {
         else a.inputs.push_back(arg);
     }
     if (a.inputs.empty()) throw std::invalid_argument("no input given");
+    a.command_line.assign(argv, argv + argc);
     return a;
+}
+
+// Prints a result's summary with the build that computed it, and records its provenance:
+// in dir/provenance.json when the result was written to a directory, and in the --record
+// file. Returns the provenance for the headers of written files.
+kairoq::Provenance finish(const Args& args, const std::string& summary, const std::string& project, const std::vector<std::string>& inputs,
+                          const kairoq::Board* board, const std::string& dir) {
+    const kairoq::Provenance p = kairoq::make_provenance(args.command_line, inputs, project, board);
+    std::cout << summary << "kairoq " << p.build.version << ", commit " << p.build.commit.substr(0, 12)
+              << (p.build.commit.size() > 40 ? " (modified)" : "") << "\n";
+    nlohmann::json j = kairoq::provenance_json(p);
+    j["summary"] = summary;
+    if (!dir.empty()) {
+        std::filesystem::create_directories(dir);
+        std::ofstream(std::filesystem::path(dir) / "provenance.json") << j.dump(1) << "\n";
+    }
+    if (!args.record.empty()) {
+        std::ofstream f(args.record);
+        if (!f) throw std::runtime_error("cannot write " + args.record);
+        f << j.dump(1) << "\n";
+    }
+    return p;
 }
 
 }  // namespace
@@ -131,7 +161,7 @@ int main(int argc, char** argv) {
             if (inputs.empty()) throw std::invalid_argument("the project names no board and none is given");
             const kairoq::Board board = kairoq::open_board(inputs, args.import);
             const kairoq::DcResult result = kairoq::solve_dc(board, project.dc);
-            std::cout << kairoq::dc_summary(board, result);
+            finish(args, kairoq::dc_summary(board, result), args.inputs[0], inputs, &board, "");
             if (args.view) kairoq::serve(board, args.serve, &result);
             return 0;
         }
@@ -150,23 +180,25 @@ int main(int argc, char** argv) {
                 const kairoq::ElmerSettings es = kairoq::parse_elmer_settings(kairoq::read_file(args.inputs[0]), "thermal");
                 const auto e = kairoq::export_elmer_thermal(board, ts, es, args.output);
                 if (!args.run) {
-                    std::cout << kairoq::elmer_thermal_summary(e, nullptr, nullptr) << "wrote " << args.output << "; run ElmerSolver on thermal.sif there\n";
+                    finish(args, kairoq::elmer_thermal_summary(e, nullptr, nullptr) + "wrote " + args.output + "; run ElmerSolver on thermal.sif there\n",
+                           args.inputs[0], inputs, &board, args.output);
                     return 0;
                 }
                 const auto r = kairoq::run_elmer_thermal(std::filesystem::absolute(args.output).string(), es.solver);
                 const kairoq::ThermalResult native = kairoq::solve_thermal(board, ts);
-                std::cout << kairoq::elmer_thermal_summary(e, &r, &native);
+                finish(args, kairoq::elmer_thermal_summary(e, &r, &native), args.inputs[0], inputs, &board, args.output);
                 return 0;
             }
             const kairoq::ElmerSettings es = kairoq::parse_elmer_settings(kairoq::read_file(args.inputs[0]));
             const auto e = kairoq::export_elmer_dc(board, project.dc, es, args.output);
             if (!args.run) {
-                std::cout << kairoq::elmer_dc_summary(e, nullptr, nullptr) << "wrote " << args.output << "; run ElmerSolver on each port_<k>.sif there\n";
+                finish(args, kairoq::elmer_dc_summary(e, nullptr, nullptr) + "wrote " + args.output + "; run ElmerSolver on each port_<k>.sif there\n",
+                       args.inputs[0], inputs, &board, args.output);
                 return 0;
             }
             const auto r = kairoq::run_elmer_dc(project.dc, std::filesystem::absolute(args.output).string(), es.solver);
             const kairoq::DcResult native = kairoq::solve_dc(board, project.dc);
-            std::cout << kairoq::elmer_dc_summary(e, &r, &native);
+            finish(args, kairoq::elmer_dc_summary(e, &r, &native), args.inputs[0], inputs, &board, args.output);
             return 0;
         }
         if (args.command == "emi") {
@@ -177,7 +209,7 @@ int main(int argc, char** argv) {
             if (inputs.empty()) throw std::invalid_argument("the project names no board and none is given");
             const kairoq::Board board = kairoq::open_board(inputs, args.import);
             const kairoq::EmiResult result = kairoq::analyse_emi(board, *project.emi);
-            std::cout << kairoq::emi_summary(board, result);
+            finish(args, kairoq::emi_summary(board, result), args.inputs[0], inputs, &board, "");
             if (args.view) kairoq::serve(board, args.serve, nullptr, nullptr, &result);
             return 0;
         }
@@ -189,7 +221,7 @@ int main(int argc, char** argv) {
             if (inputs.empty()) throw std::invalid_argument("the project names no board and none is given");
             const kairoq::Board board = kairoq::open_board(inputs, args.import);
             const kairoq::SiResult result = kairoq::analyse_si(board, *project.si);
-            std::cout << kairoq::si_summary(board, result);
+            finish(args, kairoq::si_summary(board, result), args.inputs[0], inputs, &board, "");
             if (args.view) kairoq::serve(board, args.serve, nullptr, nullptr, nullptr, &result);
             return 0;
         }
@@ -219,7 +251,7 @@ int main(int argc, char** argv) {
                 }
                 results.push_back(kairoq::simulate(channels[sp.channel], sp, base));
             }
-            std::cout << kairoq::simulations_summary(results);
+            finish(args, kairoq::simulations_summary(results), args.inputs[0], inputs, &board, args.output);
             if (!args.output.empty()) {
                 std::filesystem::create_directories(args.output);
                 for (const auto& r : results) {
@@ -240,8 +272,15 @@ int main(int argc, char** argv) {
         if (args.command == "deembed") {
             const kairoq::DeembedResult r = kairoq::deembed(kairoq::read_file(args.inputs[0]),
                                                                 std::filesystem::absolute(args.inputs[0]).parent_path().string());
-            for (const auto& s : r.steps) std::cout << s << "\n";
-            if (!r.output.empty()) std::cout << "wrote " << r.output << "\n";
+            std::string steps;
+            for (const auto& s : r.steps) steps += s + "\n";
+            if (!r.output.empty()) steps += "wrote " + r.output + "\n";
+            const kairoq::Provenance p = finish(args, steps, args.inputs[0], {}, nullptr, "");
+            if (!r.output.empty()) {
+                // The written Touchstone file with its provenance as comment lines first.
+                const std::string text = kairoq::read_file(r.output);
+                std::ofstream(r.output) << kairoq::provenance_comment(p, "! ") << text;
+            }
             return 0;
         }
         if (args.command == "eye") {
@@ -270,7 +309,7 @@ int main(int argc, char** argv) {
                 }
                 results.push_back(kairoq::eye(channels[e.channel], e));
             }
-            std::cout << kairoq::eyes_summary(results);
+            finish(args, kairoq::eyes_summary(results), args.inputs[0], inputs, &board, args.output);
             if (!args.output.empty()) {
                 std::filesystem::create_directories(args.output);
                 for (const auto& r : results) {
@@ -295,7 +334,7 @@ int main(int argc, char** argv) {
             if (inputs.empty()) throw std::invalid_argument("the project names no board and none is given");
             const kairoq::Board board = kairoq::open_board(inputs, args.import);
             const kairoq::PdnResult r = kairoq::analyse_pdn(board, settings);
-            std::cout << kairoq::pdn_summary(r, settings);
+            finish(args, kairoq::pdn_summary(r, settings), args.inputs[0], inputs, &board, args.output);
             if (!args.output.empty()) {
                 std::filesystem::create_directories(args.output);
                 for (std::size_t l = 0; l < r.loads.size(); ++l) {
@@ -322,15 +361,16 @@ int main(int argc, char** argv) {
             const kairoq::Board board = kairoq::open_board(inputs, args.import);
             const std::string base = std::filesystem::absolute(args.inputs[0]).parent_path().string();
             const auto results = kairoq::analyse_channels(board, *project.si, cp.channels, cp.network, base);
-            std::cout << kairoq::channels_summary(results);
+            const kairoq::Provenance p = finish(args, kairoq::channels_summary(results), args.inputs[0], inputs, &board, args.output);
+            const std::string header = kairoq::provenance_comment(p, "! ");
             if (!args.output.empty()) {
                 std::filesystem::create_directories(args.output);
                 for (const auto& r : results) {
                     const std::string n = std::to_string(r.ports.size());
-                    std::ofstream(std::filesystem::path(args.output) / (r.name + ".s" + n + "p")) << kairoq::touchstone(r, false);
+                    std::ofstream(std::filesystem::path(args.output) / (r.name + ".s" + n + "p")) << header << kairoq::touchstone(r, false);
                     if (!r.mixed.empty()) {
                         const auto m = static_cast<std::size_t>(std::llround(std::sqrt(double(r.mixed.front().size()))));
-                        std::ofstream(std::filesystem::path(args.output) / (r.name + "_mixed.s" + std::to_string(m) + "p")) << kairoq::touchstone(r, true);
+                        std::ofstream(std::filesystem::path(args.output) / (r.name + "_mixed.s" + std::to_string(m) + "p")) << header << kairoq::touchstone(r, true);
                     }
                 }
                 std::cout << "wrote " << args.output << "\n";
@@ -352,7 +392,8 @@ int main(int argc, char** argv) {
             if (inputs.empty()) throw std::invalid_argument("the project names no board and none is given");
             const kairoq::Board board = kairoq::open_board(inputs, args.import);
             const auto model = kairoq::export_openems_channel(board, *project.si, *c, kairoq::parse_openems_channel(text), args.output);
-            std::cout << kairoq::openems_channel_summary(model) << "wrote " << args.output << "/model.json and simulate.py\n";
+            finish(args, kairoq::openems_channel_summary(model) + "wrote " + args.output + "/model.json and simulate.py\n", args.inputs[0], inputs,
+                   &board, args.output);
             return 0;
         }
         if (args.command == "openems") {
@@ -371,7 +412,8 @@ int main(int argc, char** argv) {
             }
             const kairoq::Board board = kairoq::open_board(inputs, args.import);
             const auto model = kairoq::export_openems(board, *loop, *project.emi, args.output);
-            std::cout << kairoq::openems_summary(model) << "wrote " << args.output << "/model.json and simulate.py\n";
+            finish(args, kairoq::openems_summary(model) + "wrote " + args.output + "/model.json and simulate.py\n", args.inputs[0], inputs, &board,
+                   args.output);
             return 0;
         }
         if (args.command == "thermal") {
@@ -385,7 +427,7 @@ int main(int argc, char** argv) {
             const kairoq::ThermalSettings settings = kairoq::resolve_thermal_project(board, project, warnings);
             kairoq::ThermalResult result = kairoq::solve_thermal(board, settings);
             result.warnings.insert(result.warnings.begin(), warnings.begin(), warnings.end());
-            std::cout << kairoq::thermal_summary(board, result);
+            finish(args, kairoq::thermal_summary(board, result), args.inputs[0], inputs, &board, "");
             if (args.view) kairoq::serve(board, args.serve, result.dc ? &*result.dc : nullptr, &result);
             return 0;
         }

@@ -95,7 +95,9 @@ An input is a canonical model, an IPC-2581 file, an ODB++ job, or fabrication fi
 `--stackup <file.yaml>` gives the stackup when the inputs lack one or to override it;
 `--arc-tolerance <µm>` sets the largest deviation of polygon chords from arcs (default
 1 µm); `--crop x0,y0,x1,y1` keeps the part of the board inside a rectangle (mm), with open
-edges through which no current or heat passes.
+edges through which no current or heat passes. Every analysis records its provenance (the
+build, the command and SHA-256 digests of its inputs) with its results, or in the file given
+by `--record` (`docs/provenance.md`).
 
 For example, on the boards in `testdata/`:
 

@@ -4,6 +4,7 @@
 
 #include "kairoq/geometry.hpp"
 
+#include <cstdint>
 #include <optional>
 #include <string>
 #include <vector>
@@ -96,11 +97,21 @@ struct Component {
     std::string position_source;  // "placement", "ipc2581", "pads"
 };
 
+// The SHA-256 of an input: of a file's bytes; of a directory, of the lines
+// "<relative path> <sha256>\n" of its files in sorted order (docs/provenance.md).
+struct FileDigest {
+    std::string path;  // the name the input was given by (a board's sources: the file name)
+    std::string sha256;
+    std::uintmax_t bytes = 0;  // a directory's: its files' total
+    bool directory = false;
+};
+
 struct SourceInfo {
     std::string importer;   // "fabrication" or "ipc2581"
     std::string generator;  // generating software, when the files name it
     std::vector<std::string> files;
     double arc_tolerance_nm = 0.0;
+    std::vector<FileDigest> digests;  // the inputs the board was imported from
 };
 
 struct Board {

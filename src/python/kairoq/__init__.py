@@ -14,9 +14,10 @@ from typing import Iterable
 from . import _core
 
 __all__ = ["Board", "DcResult", "EmiResult", "SiResult", "ThermalResult", "analyse_channels", "analyse_emi", "analyse_si", "cross_section", "deembed", "export_openems", "export_openems_channel", "eye", "open", "patch_antenna", "pdn", "serve", "solve_dc",
-           "ibis_switching", "read_touchstone", "simulate", "solve_thermal", "MODEL_VERSION"]
+           "ibis_switching", "read_touchstone", "simulate", "solve_thermal", "MODEL_VERSION", "build_info", "provenance"]
 
 MODEL_VERSION = _core.MODEL_VERSION
+__version__ = _core.build_info()[0]
 builtins_open = builtins.open
 
 
@@ -113,6 +114,22 @@ class Board:
 
     def __repr__(self) -> str:
         return f"<kairoq.Board {self.name!r}: {len(self.copper_layers)} copper layers, {len(self.nets) - 1} nets>"
+
+
+def build_info() -> dict:
+    """The build of the library: version, git commit ("+modified" when the source tree had
+    changes; "unknown" outside git), compiler and platform."""
+    version, commit, compiler, platform = _core.build_info()
+    return {"version": version, "commit": commit, "compiler": compiler, "platform": platform}
+
+
+def provenance(board: Board | None = None, project: str | os.PathLike | None = None,
+               files: Iterable[str | os.PathLike] = ()) -> dict:
+    """The provenance of a result computed now (docs/provenance.md): the build, the time, the
+    SHA-256 digests of ``files`` and of the ``project`` file with every file its values name,
+    and the digests of the files ``board`` was imported from. Store it with the result."""
+    return json.loads(_core.provenance([os.fspath(f) for f in files], "" if project is None else os.fspath(project),
+                                       None if board is None else board._core))
 
 
 def open(
