@@ -106,4 +106,7 @@ kairoq.ibis_switching("u1.ibs", "LVCMOS33_8MA", rising=True)
   `[Submodel]`, `[ISSO PU]`/`[ISSO PD]` and supply effects (the rails are ideal); not used:
   the fixtures' inductance and DUT parasitics, the per-pin package values. Unread keywords
   are reported.
-- Backward Euler damps resonances of the package slightly at coarse steps.
+- Backward Euler adds a damping ratio of about $\omega\Delta t/2$ to resonances of the
+  packages and loads: 0.04 at 2 GHz for the default step with a sweep to 20 GHz, more than
+  a low-loss package has. A larger `oversample` reduces it in proportion
+  (`docs/methods/timedomain.md`).
