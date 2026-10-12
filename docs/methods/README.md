@@ -14,16 +14,17 @@ literature are credited where they are used and listed in `docs/references.bib`.
 | analysis | method | user guide | validation |
 | --- | --- | --- | --- |
 | DC current | [dc.md](dc.md) | [solvers/dc.md](../solvers/dc.md) | [validation/dc.md](../validation/dc.md) |
+| thermal | [thermal.md](thermal.md) | [solvers/thermal.md](../solvers/thermal.md) | [validation/thermal.md](../validation/thermal.md), [thermal-transients.md](../validation/thermal-transients.md) |
 | EMI loops: inductance, impedance, field | [emi.md](emi.md) | [solvers/emi.md](../solvers/emi.md) | [validation/emi.md](../validation/emi.md) |
+| switch-node capacitance | [capacitance.md](capacitance.md) | [solvers/emi.md](../solvers/emi.md) | [validation/emi.md](../validation/emi.md) |
 | transmission lines | [si.md](si.md) | [solvers/si.md](../solvers/si.md) | [validation/si.md](../validation/si.md) |
-| networks: S-parameters, mixed mode, TDR | [networks.md](networks.md) | [solvers/networks.md](../solvers/networks.md) | [validation/networks.md](../validation/networks.md) |
 | crosstalk | [crosstalk.md](crosstalk.md) | [solvers/si.md](../solvers/si.md) | [validation/crosstalk.md](../validation/crosstalk.md) |
+| networks: S-parameters, mixed mode, TDR | [networks.md](networks.md) | [solvers/networks.md](../solvers/networks.md) | [validation/networks.md](../validation/networks.md) |
 | time-domain response | [timedomain.md](timedomain.md) | [solvers/timedomain.md](../solvers/timedomain.md) | [validation/timedomain.md](../validation/timedomain.md) |
 | eye diagrams | [eye.md](eye.md) | [solvers/eye.md](../solvers/eye.md) | [validation/eye.md](../validation/eye.md) |
 | PDN impedance, plane-pair cavities | [pdn.md](pdn.md) | [solvers/pdn.md](../solvers/pdn.md) | [validation/pdn.md](../validation/pdn.md) |
 | RF: de-embedding, patch antennas | [rf.md](rf.md) | [solvers/rf.md](../solvers/rf.md) | [validation/rf.md](../validation/rf.md) |
-| switch-node capacitance | [capacitance.md](capacitance.md) | [solvers/emi.md](../solvers/emi.md) | [validation/emi.md](../validation/emi.md) |
-| thermal | [thermal.md](thermal.md) | [solvers/thermal.md](../solvers/thermal.md) | [validation/thermal.md](../validation/thermal.md), [thermal-transients.md](../validation/thermal-transients.md) |
+| openEMS and Elmer references | [external.md](external.md) | [solvers/openems.md](../solvers/openems.md), [solvers/elmer.md](../solvers/elmer.md) | [validation/emi.md](../validation/emi.md), [validation/rf.md](../validation/rf.md), [validation/dc.md](../validation/dc.md), [validation/thermal.md](../validation/thermal.md) |
 
 Each document follows the same order: symbols; physical model and its assumptions;
 variational or integral form; discretisation; solution of the discrete system; reported
