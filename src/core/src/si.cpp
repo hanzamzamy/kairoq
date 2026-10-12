@@ -298,9 +298,10 @@ std::optional<Cut> Analysis::make_cut(const Task& t) const {
                 }
     // The cut reaches twenty times the distance to the farther shield: the field of a
     // microstrip falls as the inverse square of the distance, and the impedance of the
-    // truncated cut is then within about 0.1 % of an unbounded one. Other nets' copper on the track's layer within twice that distance is
-    // a quiet line of its own; other copper is held at the reference potential, which
-    // leaves the track's capacitance unchanged and its inductance nearly so.
+    // truncated cut is then within about 0.1 % of an unbounded one. Other nets' copper on
+    // the track's layer within `neighbour_heights` times that distance (at most
+    // `neighbour_nm`) is a quiet line of its own; other copper is held at the reference
+    // potential, which leaves the track's capacitance unchanged and its inductance nearly so.
     const std::size_t st = stack_of_copper_[static_cast<std::size_t>(t.layer)];
     double dv = 0;
     for (int l : {top, bottom}) {
