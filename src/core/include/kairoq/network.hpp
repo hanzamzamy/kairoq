@@ -60,7 +60,7 @@ struct NetworkSettings {
     // "coaxial": coaxial lines between the layers, of the antipad's diameter.
     std::string via_model = "physical";
     double rise_time_s = 35e-12;  // of the TDR step (10 to 90 %), at least 0.9 / f_max
-    double tdr_duration_s = 0.0;  // 0: twice the longest delay of the channel's nets, at least 1 ns
+    double tdr_duration_s = 0.0;  // 0: twice the summed delay of the channel's nets, at least 1 ns
 };
 
 struct TdrTrace {

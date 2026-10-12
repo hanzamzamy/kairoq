@@ -1072,6 +1072,13 @@ ChannelResult Channel::run() {
         res.warnings.push_back(text);
     }
     const double sigma = rise / 2.563, t0 = 4 * sigma;
+    // The sampled spectrum makes the response periodic in 1 / df: a later time folds back.
+    if (duration + t0 > 1.0 / df) {
+        char text[160];
+        std::snprintf(text, sizeof text, "TDR window %.3g ns beyond the sweep's period %.3g ns: the response wraps; more points lengthen the period",
+                      (duration + t0) * 1e9, 1e9 / df);
+        res.warnings.push_back(text);
+    }
     const double dt = std::min(rise / 10, 1.0 / (4 * ns_.f_max_hz));
     // Response to the step of one parameter (a reflection or a transmission) over time.
     const std::size_t nt = static_cast<std::size_t>(std::ceil((duration + t0) / dt));

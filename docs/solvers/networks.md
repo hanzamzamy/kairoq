@@ -102,7 +102,7 @@ si:
 | key | default | meaning |
 | --- | --- | --- |
 | `channels[]` | | `name`, `ports` (pads, or points `NAME@X,Y[,LAYER]` in mm: a port on the end of the nearest track on that layer, within 2 mm), `differential` (port pairs, from 1), `impedance_ohm` (50), `parts` (`from`, `to`, `r_ohm`, `l_nh`, `c_nf` in series, or `touchstone`), `loads` (`pad`, `r_ohm`, `c_pf`), `drive` (ports, from 1, to step) |
-| `network` | | `f_max_hz` ($2 \times 10^{10}$), `points` (400: a linear sweep from `f_max_hz`/`points`), `vias` (true), `via_model` (`physical`, or `coaxial`), `rise_ps` (35), `tdr_ns` (twice the delay of the channel's nets, at least 1 ns) |
+| `network` | | `f_max_hz` ($2 \times 10^{10}$), `points` (400: a linear sweep from `f_max_hz`/`points`), `vias` (true), `via_model` (`physical`, or `coaxial`), `rise_ps` (35), `tdr_ns` (twice the summed delay of the channel's nets, at least 1 ns) |
 
 The nets of a channel are those of its ports, and the nets its parts lead to; other
 pads of these nets are open unless a load is given.
@@ -134,6 +134,9 @@ t = kairoq.read_touchstone("part.s2p")
   The channel's export to openEMS (`docs/solvers/rf.md`) gives the full-wave answer.
 - Nets are coupled only where their cuts find each other on one layer; where the routes
   separate, each is a single line, and coupling between layers is not modelled.
+- The time responses come from a sampled spectrum and repeat with the period
+  `points`/`f_max_hz` (20 ns by default); a longer window is reported in a warning and
+  needs more points.
 - Touchstone input: version 1, S-parameters, two-ports.
 - Copper drawn as areas (zones, polygons) is cut only where tracks run over it as a
   reference: structures drawn as copper areas, such as some filters, are not lines of the
