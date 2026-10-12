@@ -65,3 +65,35 @@ TEST_CASE("Rectangular plane pair: modes, plate capacitance and transfer impedan
         CHECK(std::abs(zf[1] - ref) < 0.04 * std::abs(ref) + 0.01);
     }
 }
+
+TEST_CASE("Rectangular plane pair: eigenvalues bound from above and converge as h^2") {
+    // The cavity's mesh scales with k_max (edges of a twentieth of the wavelength at
+    // 2 k_max), but not uniformly: the outline's finer edges weigh more on coarse meshes,
+    // and doubling k_max multiplies the nodes by 2.6 to 3.1 rather than 4. The order is
+    // therefore measured against the mean element size sqrt(area / nodes). Conforming
+    // linear elements give eigenvalues above the true ones (min-max principle), in error
+    // as h^2.
+    const double er = 4.5;
+    const double a = 0.04, b = 0.01;
+    const double exact[] = {std::pow(kPiT / a, 2), std::pow(2 * kPiT / a, 2), std::pow(3 * kPiT / a, 2), std::pow(kPiT / b, 2)};
+    std::vector<std::vector<double>> err;
+    std::vector<double> size;
+    for (double f_max : {5e9, 10e9, 20e9}) {
+        const Cavity c(rectangle(40, 10), {}, 2 * kPiT * f_max / kC0T * std::sqrt(er));
+        REQUIRE(c.modes() > 4);
+        size.push_back(std::sqrt(c.area_m2() / double(c.nodes())));
+        std::vector<double> e;
+        for (std::size_t k = 0; k < 4; ++k) {
+            CHECK(c.eigenvalues()[k + 1] > exact[k]);
+            e.push_back(c.eigenvalues()[k + 1] / exact[k] - 1);
+        }
+        err.push_back(e);
+    }
+    for (std::size_t k = 0; k < 4; ++k)
+        for (std::size_t r = 0; r + 1 < err.size(); ++r) {
+            const double p = std::log(err[r][k] / err[r + 1][k]) / std::log(size[r] / size[r + 1]);
+            INFO("mode " << k + 1 << ", refinement " << r + 1 << ": observed order " << p);
+            CHECK(p > 1.8);
+            CHECK(p < 2.5);
+        }
+}

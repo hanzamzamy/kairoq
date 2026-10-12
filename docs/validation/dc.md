@@ -63,6 +63,25 @@ where gradient recovery is known to underestimate; the test therefore allows
 $\max(e^2, 2 \times 10^{-3})$ for this case. The resistance converges from below, as it must for a
 conforming finite element solution with set potentials.
 
+## Order of convergence
+
+Three meshes whose element size halves, without adaptive refinement, give the observed
+order $p = \log_2 |(Q_h - Q_{h/2}) / (Q_{h/2} - Q_{h/4})|$ of the two-port resistance from
+the differences alone (`tests/python/test_convergence.py`). Linear elements converge in
+the energy as $h^2$ where the solution is smooth. An equipotential boundary with a corner
+of interior angle $\alpha > \pi$, seen from the copper, makes the solution singular as
+$r^{\pi/\alpha}$ and the order $2\pi/\alpha$. Circles are polygons: a circular boundary of
+$n$ sides has corners of $\pi + 2\pi/n$ and the order $2n/(n + 2)$.
+
+| case | meshes | observed order | expected | resistance |
+| --- | --- | --- | --- | --- |
+| annulus, ports of radius 1 and 4.5 mm, one layer | 0.1, 0.05, 0.025 mm | 1.940 | 1.945 (port of 70 sides at the 1 µm arc tolerance) | extrapolated: $5 \times 10^{-6}$ from $\ln(r_2/r_1)/(2\pi\sigma t)$ |
+| via spreading, drill 1 mm | 0.1, 0.05, 0.025 mm | 1.82 (1.76 at 0.05, 0.025, 0.0125 mm) | 1.78 (hole of 16 sides) | finest: $1.5 \times 10^{-4}$ from the circular hole's |
+
+The solver converges at the order the geometry allows. Plated holes are 16-sided polygons
+(`hole_outline`), which lowers the order of uniform refinement to 1.78; adaptive refinement
+concentrates elements at their corners and is not limited by it.
+
 ## Real board
 
 KiCad demonstration board `cm5_minima` (6 layers, 444 vias), 3 A from the input connector

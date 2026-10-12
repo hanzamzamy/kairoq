@@ -48,6 +48,16 @@ $$\theta = \frac{a\,(1 + \alpha (T_a - 20))}{1 - a \alpha}, \qquad a = \frac{I^2
 
 with $H$ the conductance per area of both faces.
 
+## Order of convergence
+
+As for the DC solver (`docs/validation/dc.md`, "Order of convergence"): the thermal
+resistance between the rims of an annulus of copper (radii 1 and 4.5 mm, copper only) on
+meshes of 0.2, 0.1 and 0.05 mm converges at the observed order 1.87, against 1.945 expected
+for the inner rim's polygon of 70 sides; on the finest mesh it is $1.2 \times 10^{-4}$ below
+$\ln(r_2/r_1)/(2\pi k t)$. On the fin of the closed-form cases, a one-dimensional field on
+unstructured triangles, the error falls faster than $h^2$ but irregularly (successive
+ratios between 4 and 13), so no order is stated for it.
+
 ## Layered model against a three-dimensional solution
 
 `tools/ref3d.py` solves steady conduction on a graded tensor-product grid in which every

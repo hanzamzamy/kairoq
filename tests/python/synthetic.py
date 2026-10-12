@@ -223,6 +223,19 @@ def via_spreading(out: Path, r_outer=5.0, ring=0.5, drill=0.3, dielectric=1.51, 
     return {"r_inner_port": r_outer - ring, "r_via": drill / 2, "barrel_length": dielectric + copper, "copper": copper}
 
 
+def annulus(out: Path, r_outer=5.0, ring=0.5, r_inner=1.0, copper=0.035, dielectric=1.5) -> dict:
+    """Single copper layer: a disc with an annular port at its rim (P1.1) and a round port at
+    its centre (P2.1); the field between them is radial."""
+    top, prof = Gerber("Copper,L1,Top"), Gerber("Profile,NP")
+    c = r_outer + 2.0
+    top.flash(f"C,{2 * r_outer:.6f}", c, c, "N", None, "Conductor")
+    top.flash(f"C,{2 * r_outer:.6f}X{2 * (r_outer - ring):.6f}", c, c, "N", ("P1", "1"), "ComponentPad")
+    top.flash(f"C,{2 * r_inner:.6f}", c, c, "N", ("P2", "1"), "ComponentPad")
+    prof.outline([(0, 0), (2 * c, 0), (2 * c, 2 * c), (0, 2 * c)])
+    _write(out, "annulus", {"annulus-L1.gtl": top, "annulus-Edge.gm1": prof}, {}, [copper], [dielectric])
+    return {"r_outer_port": r_outer - ring, "r_inner_port": r_inner}
+
+
 def neck(out: Path, width=4.0, length=40.0, aperture=0.5, wall=0.02, pad=2.0) -> dict:
     """Strip with a thin wall across its middle, open over `aperture`; pads across both ends."""
     top, bot, prof = Gerber("Copper,L1,Top"), Gerber("Copper,L2,Bot"), Gerber("Profile,NP")

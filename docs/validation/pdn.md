@@ -27,6 +27,15 @@ The tests are in `tests/python/test_pdn.py` and `tests/cpp/test_cavity.cpp`.
   (largest at 522 MHz, 24 Ω) with the capacitors' mounting inductances of 1.2 to 1.6 nH
   (pads, tracks to their vias, vias) and 6.6 nH at the USB-C connector. 12 s.
 
+## Order of convergence
+
+The first four modes of a 40 × 10 mm rectangle without ports, with the cavity's mesh for
+sweeps to 5, 10 and 20 GHz (`tests/cpp/test_cavity.cpp`): every computed eigenvalue lies
+above the exact one, as the min-max principle requires of conforming elements, and the
+relative error falls with the mean element size $\sqrt{A/N}$ at the observed order 2.09 to
+2.33. The mesh does not refine uniformly with the sweep (doubling the highest frequency
+multiplies the nodes by 2.6 to 3.1), so the order is measured against the mean size.
+
 ## Not validated
 
 The PDN impedance is not compared with a full-wave solution or a measured board.
