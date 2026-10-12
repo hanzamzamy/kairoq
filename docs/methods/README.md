@@ -20,6 +20,7 @@ literature are credited where they are used and listed in `docs/references.bib`.
 | crosstalk | [crosstalk.md](crosstalk.md) | [solvers/si.md](../solvers/si.md) | [validation/crosstalk.md](../validation/crosstalk.md) |
 | time-domain response | [timedomain.md](timedomain.md) | [solvers/timedomain.md](../solvers/timedomain.md) | [validation/timedomain.md](../validation/timedomain.md) |
 | eye diagrams | [eye.md](eye.md) | [solvers/eye.md](../solvers/eye.md) | [validation/eye.md](../validation/eye.md) |
+| PDN impedance, plane-pair cavities | [pdn.md](pdn.md) | [solvers/pdn.md](../solvers/pdn.md) | [validation/pdn.md](../validation/pdn.md) |
 | switch-node capacitance | [capacitance.md](capacitance.md) | [solvers/emi.md](../solvers/emi.md) | [validation/emi.md](../validation/emi.md) |
 | thermal | [thermal.md](thermal.md) | [solvers/thermal.md](../solvers/thermal.md) | [validation/thermal.md](../validation/thermal.md), [thermal-transients.md](../validation/thermal-transients.md) |
 

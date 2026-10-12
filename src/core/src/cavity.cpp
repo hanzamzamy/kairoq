@@ -6,7 +6,7 @@
 // elements, (K - k^2 M) V = j omega mu h sum_p I_p f_p, f_p the circle's load vector divided
 // by its length, so that f_p^T V is the mean voltage on the circle; shorted ports hold V = 0.
 // Z = j omega mu h F^T (K - k^2 M)^-1 F, expanded in the M-orthonormal modes K phi = lambda
-// M phi: sum_m (f^T phi_m)(f^T phi_m)^T / (lambda_m - k^2). Modes up to (2 k_max)^2 come
+// M phi: sum_m (f^T phi_m)(f^T phi_m)^T / (lambda_m - k^2). Modes up to (3 k_max)^2 come
 // from shift-invert Lanczos; the rest enter by their static sum, F^T (K + s M)^-1 F less the
 // kept modes' part at the same shift.
 #include "cavity.hpp"
