@@ -19,6 +19,7 @@ literature are credited where they are used and listed in `docs/references.bib`.
 | networks: S-parameters, mixed mode, TDR | [networks.md](networks.md) | [solvers/networks.md](../solvers/networks.md) | [validation/networks.md](../validation/networks.md) |
 | crosstalk | [crosstalk.md](crosstalk.md) | [solvers/si.md](../solvers/si.md) | [validation/crosstalk.md](../validation/crosstalk.md) |
 | time-domain response | [timedomain.md](timedomain.md) | [solvers/timedomain.md](../solvers/timedomain.md) | [validation/timedomain.md](../validation/timedomain.md) |
+| eye diagrams | [eye.md](eye.md) | [solvers/eye.md](../solvers/eye.md) | [validation/eye.md](../validation/eye.md) |
 | switch-node capacitance | [capacitance.md](capacitance.md) | [solvers/emi.md](../solvers/emi.md) | [validation/emi.md](../validation/emi.md) |
 | thermal | [thermal.md](thermal.md) | [solvers/thermal.md](../solvers/thermal.md) | [validation/thermal.md](../validation/thermal.md), [thermal-transients.md](../validation/thermal-transients.md) |
 
