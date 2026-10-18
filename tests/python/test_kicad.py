@@ -245,3 +245,19 @@ def test_de10_interface_board(validation):
     assert max(drops.values()) < 0.01
     validation.check("de10_interface +3V3_DOM2", "largest drop", max(drops.values()), 0.0049, rel=0.05, unit="V",
                      source="the same solution (regression)")
+
+
+@pytest.mark.parametrize("file", ["ecc83.xml", "ecc83.odb.zip"])
+def test_stackup_yaml_overrides_ipc2581_and_odbpp(file, tmp_path):
+    """A stackup file given with the board replaces the stackup of an IPC-2581 or ODB++ file."""
+    y = tmp_path / "stack.yaml"
+    y.write_text("layers:\n  - {name: F.Mask, type: soldermask, thickness_mm: 0.02}\n"
+                 "  - {name: top, type: copper, thickness_mm: 0.07}\n"
+                 "  - {name: core, type: dielectric, thickness_mm: 0.8, material: FR-4}\n"
+                 "  - {name: bot, type: copper, thickness_mm: 0.07}\n")
+    b = kairoq.open(TESTDATA / "kicad" / "ecc83" / file, stackup=y)
+    assert b.data["stackup"]["source"] == "yaml"
+    assert [l["thickness_mm"] for l in b.stackup] == pytest.approx([0.02, 0.07, 0.8, 0.07])
+    y.write_text("layers:\n  - {name: top, type: copper, thickness_mm: 0.035}\n")
+    with pytest.raises(Exception, match="copper layers"):
+        kairoq.open(TESTDATA / "kicad" / "ecc83" / file, stackup=y)

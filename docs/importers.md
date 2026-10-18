@@ -104,8 +104,10 @@ layers:            # top to bottom
   - {name: B.Cu,  type: copper,     thickness_mm: 0.035}
 ```
 
-Optional fields: `material`, `epsilon_r`, `loss_tangent`, `conductivity_s_per_m`. The YAML
-stackup takes precedence over the job file.
+Optional fields: `material`, `epsilon_r`, `loss_tangent`, `conductivity_s_per_m`. A stackup
+file given with the board (`--stackup`, or `stackup=` in Python) takes precedence over the
+stackup the board was read with: the job file's, or that of an IPC-2581, ODB++ or model file.
+It must have as many copper layers as the board.
 
 ## IPC-2581
 

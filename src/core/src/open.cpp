@@ -1,5 +1,7 @@
 #include "kairoq/open.hpp"
 
+#include "kairoq/archive.hpp"
+#include "kairoq/fabrication.hpp"
 #include "kairoq/ipc2581.hpp"
 #include "kairoq/model_io.hpp"
 #include "kairoq/odbpp.hpp"
@@ -15,12 +17,31 @@ namespace kairoq {
 
 namespace {
 
+// A stackup file replaces the stackup of a board read from IPC-2581, ODB++ or a model; the
+// fabrication importer applies it itself, in place of the job file's.
+void override_stackup(Board& b, const std::string& path) {
+    std::vector<StackupLayer> layers = parse_stackup_yaml(read_file(path));
+    int copper = 0;
+    for (const auto& l : layers)
+        if (l.type == LayerType::Copper) ++copper;
+    if (copper != int(b.copper.size()))
+        throw std::runtime_error("the stackup file has " + std::to_string(copper) + " copper layers, the board " +
+                                 std::to_string(b.copper.size()));
+    b.stackup = std::move(layers);
+    b.stackup_source = "yaml";
+    b.source.files.push_back(std::filesystem::path(path).filename().string());
+}
+
 Board read_board(const std::vector<std::string>& inputs, const ImportOptions& options) {
     if (inputs.empty()) throw std::runtime_error("no input given");
     if (inputs.size() == 1) {
-        if (is_board_model(inputs[0])) return load_board(inputs[0]);
-        if (looks_like_odbpp(inputs[0])) return import_odbpp(inputs[0], options);
-        if (looks_like_ipc2581(inputs[0])) return import_ipc2581(inputs[0], options);
+        Board b;
+        if (is_board_model(inputs[0])) b = load_board(inputs[0]);
+        else if (looks_like_odbpp(inputs[0])) b = import_odbpp(inputs[0], options);
+        else if (looks_like_ipc2581(inputs[0])) b = import_ipc2581(inputs[0], options);
+        else return import_fabrication(inputs, options);
+        if (!options.stackup_yaml_path.empty()) override_stackup(b, options.stackup_yaml_path);
+        return b;
     }
     return import_fabrication(inputs, options);
 }

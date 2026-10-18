@@ -54,7 +54,7 @@ Gerber drill, .gbrjob, IPC-D-356, placement CSV, given as files, directories or 
 archive.
 
 options:
-  --stackup <file.yaml>     stackup, overriding the job file
+  --stackup <file.yaml>     stackup, overriding the one read with the board
   --arc-tolerance <um>      largest chord deviation from arcs (default 1 um)
   --crop <x0,y0,x1,y1>      the part of the board inside this rectangle (mm); its edges are open
   --record <file.json>      write the result's provenance (build, command, input digests) and summary
