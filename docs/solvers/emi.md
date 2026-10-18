@@ -258,7 +258,8 @@ the other nets around it, by the method of moments in the stratified medium of t
   and Cholesky factorisation. The capacitance to each net is minus its charge, and to the
   plate the rest of the node's charge. The charges converge from below, in proportion to
   the element size at the edges; a second solution with elements twice as large
-  extrapolates them, and both are reported.
+  extrapolates them, and both are reported. Where the panel budget leaves no coarser mesh,
+  the capacitance is the unextrapolated one, a lower bound, with a warning.
 
 With a rate of change of the node's voltage, the common-mode current $C\, dV/dt$ follows.
 The parallel-plate capacitance of the node's area facing the plate, not covered on the

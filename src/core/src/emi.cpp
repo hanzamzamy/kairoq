@@ -382,10 +382,16 @@ std::string emi_summary(const Board& b, const EmiResult& r) {
         }
         s << "\n";
         if (c.panels > 0) {
-            std::snprintf(line, sizeof line,
-                          "  with fringing, %zu panels within %.1f mm: %.4g pF on the mesh, %.4g pF with elements twice as large; "
-                          "parallel plates %.4g pF\n",
-                          c.panels, c.window_margin_mm, c.mesh_pf, c.coarse_pf, c.parallel_plate_pf);
+            if (c.coarse_pf > 0)
+                std::snprintf(line, sizeof line,
+                              "  with fringing, %zu panels within %.1f mm: %.4g pF on the mesh, %.4g pF with elements twice as large; "
+                              "parallel plates %.4g pF\n",
+                              c.panels, c.window_margin_mm, c.mesh_pf, c.coarse_pf, c.parallel_plate_pf);
+            else
+                std::snprintf(line, sizeof line,
+                              "  with fringing, %zu panels within %.1f mm: %.4g pF on the mesh, no coarser mesh (not extrapolated); "
+                              "parallel plates %.4g pF\n",
+                              c.panels, c.window_margin_mm, c.mesh_pf, c.parallel_plate_pf);
             s << line;
             for (std::size_t k = 0; k < c.nets_pf.size() && k < 5; ++k) {
                 std::snprintf(line, sizeof line, "  to %-14s %.4g pF\n", c.nets_pf[k].first.c_str(), c.nets_pf[k].second);

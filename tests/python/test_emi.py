@@ -236,6 +236,19 @@ def test_switch_node_with_fringing(tmp_path, validation, case):
     assert c["coarse_pf"] < c["mesh_pf"] < c["capacitance_pf"]  # the Galerkin charges converge from below
 
 
+def test_switch_node_without_a_coarser_mesh(tmp_path):
+    """Where the panel budget leaves no coarser mesh to extrapolate from, the capacitance is
+    the unextrapolated one, the result says so, and no coarse value is reported."""
+    synthetic.node_board(tmp_path, disc(5.0), dielectric=0.5, copper=0.002, epsilon_r="4.5", mask_mm=0.01)
+    e = kairoq.analyse_emi(kairoq.open(tmp_path), {"plates": [{"name": "P", "face": "bottom", "gap_mm": 0.5, "epsilon_r": 1.0}],
+                                                       "switch_nodes": [{"net": "SW", "plate": "P"}],
+                                                       "coupling_settings": {"max_panels": 300}})
+    c = e.coupling[0]
+    assert c["coarse_pf"] == 0 and c["capacitance_pf"] == pytest.approx(c["mesh_pf"], rel=1e-12)
+    assert any("not extrapolated" in w for w in e.warnings)
+    assert "twice as large" not in e.summary()
+
+
 def test_switch_node_strip_per_length(tmp_path, validation):
     """A strip 1 mm wide on FR-4 (4.5) 0.5 mm over a plate: the capacitance per length from
     strips of 10 and 20 mm against the cross-section solver, whose conductors of 5 and 2 um

@@ -170,7 +170,7 @@ struct CouplingResult {
     double parallel_plate_pf = 0.0;       // the unshielded area's parallel-plate capacitance
     double total_pf = 0.0;                // to the plate and all copper in the window
     // To the plate on the mesh used and on one with elements twice as large: the capacitance
-    // is extrapolated from the two (0: one mesh).
+    // is extrapolated from the two (0: no coarser mesh; the capacitance is then not extrapolated).
     double mesh_pf = 0.0, coarse_pf = 0.0;
     std::vector<std::pair<std::string, double>> nets_pf;  // to each net in the window
     std::size_t panels = 0;

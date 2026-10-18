@@ -341,6 +341,9 @@ NodeCapacitance node_capacitance(const Board& b, int net, const PlateSpec& plate
         const std::vector<double> coarse = charges(coarse_panels);
         for (double v : coarse) res.coarse_to_plate_f += v;
         for (std::size_t g = 0; g < fine.size(); ++g) best[g] = 2 * fine[g] - coarse[g];
+    } else {
+        res.warnings.push_back("the panel budget leaves no coarser mesh around " + b.nets[net] +
+                               ": its capacitance is not extrapolated, and is a lower bound");
     }
     res.total_f = best[0];
     res.to_plate_f = best[0];
