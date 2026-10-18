@@ -462,6 +462,30 @@ def test_streamed_partial_inductances(tmp_path):
         assert abs(zb[3][0] - za[3][0]) < 1e-9 * abs(za[3][0])
 
 
+def test_memory_limit_stops_refinement(tmp_path):
+    """A pass whose matrices would exceed max_memory_mb is not solved: the refinement stops
+    at the previous pass, with its frequency sweep, and says so; a first mesh above the limit
+    is an error. The estimate is reported."""
+    synthetic.slot_board(tmp_path, stitch=False)
+    b = kairoq.open(tmp_path)
+    settings = {"max_triangles": 8000, "frequencies_hz": [1e8], "moment_tolerance": 0}
+    full = kairoq.analyse_emi(b, {"loops": [{"name": "X", "elements": SLOT_LOOP}], "loop_settings": settings}).loops["X"]
+    assert full["memory_mb"] > 0
+    # The largest limit below the full run's peak that stops the refinement.
+    limited = None
+    for k in (0.95, 0.9, 0.8, 0.7, 0.6, 0.5):
+        r = kairoq.analyse_emi(b, {"loops": [{"name": "X", "elements": SLOT_LOOP}],
+                                   "loop_settings": {**settings, "max_memory_mb": k * full["memory_mb"]}}).loops["X"]
+        if any("refinement stopped" in w for w in r["warnings"]):
+            limited, limit = r, k * full["memory_mb"]
+            break
+    assert limited is not None
+    assert limited["triangles"] < full["triangles"] and limited["inductance_nh"] > full["inductance_nh"]
+    assert limited["memory_mb"] <= limit and len(limited["impedance"]) == 1
+    with pytest.raises(Exception, match="memory"):
+        kairoq.analyse_emi(b, {"loops": [{"name": "X", "elements": SLOT_LOOP}], "loop_settings": {**settings, "max_memory_mb": 0.01}})
+
+
 def test_budget_lowers_the_inductance(tmp_path):
     """The inductance converges from above as the triangle budget grows (docs/solvers/emi.md,
     "Accuracy and cost"); at the default budget the slotted board's first mesh has the

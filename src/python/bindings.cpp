@@ -386,6 +386,7 @@ NB_MODULE(_core, m) {
                              d["inductance_nh"] = l.inductance_nh;
                              d["inductance_coarse_nh"] = l.inductance_coarse_nh;
                              d["element_size_mm"] = l.element_size_mm;
+                             d["memory_mb"] = l.memory_mb;
                              d["warnings"] = l.warnings;
                              d["element_inductance_nh"] = l.element_inductance_nh;
                              d["moment_m2"] = nb::make_tuple(l.moment_m2[0], l.moment_m2[1], l.moment_m2[2]);

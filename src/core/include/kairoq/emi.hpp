@@ -68,6 +68,10 @@ struct LoopSettings {
     // basis of loops, its rows are formed by blocks and multiplied out (about twice the
     // kernel evaluations, a fraction of the memory).
     double dense_matrix_mb = 2048.0;
+    // A refinement pass that would take the process above this (MiB) is not solved: the
+    // refinement stops at the previous pass. 0: 90 % of what the process may use (its own
+    // memory and the system's available memory, or its cgroup's limit, the smaller).
+    double max_memory_mb = 0.0;
     // Resistance and inductance of the loop at these frequencies (empty: the high-frequency
     // inductance only): the sheets' surface impedance and the holes' plating in the solve.
     std::vector<double> frequencies_hz;
@@ -114,6 +118,7 @@ struct LoopResult {
     double element_inductance_nh = 0.0; // added inside the packages
     std::array<double, 3> moment_m2{0, 0, 0};  // magnetic moment per ampere (A m^2 / A)
     std::size_t triangles = 0, unknowns = 0, filaments = 0;
+    double memory_mb = 0.0;  // estimated peak of the process over the passes solved (MiB)
     std::vector<LoopHarmonic> harmonics;  // with a waveform
     std::vector<LoopImpedance> impedance;  // at LoopSettings::frequencies_hz
     std::vector<CurrentElement> currents;  // of the last solution

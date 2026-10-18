@@ -317,8 +317,8 @@ std::string emi_summary(const Board& b, const EmiResult& r) {
         }
         std::snprintf(line, sizeof line,
                       "\n  magnetic moment %.4g mm^2 per ampere (window margin %.0f mm, last change %.1f %%); %zu triangles (elements of %.2f mm "
-                      "at the loop before refinement), %zu filaments, %.1f s\n",
-                      m * 1e6, l.window_margin_mm, 100 * l.moment_change, l.triangles, l.element_size_mm, l.filaments, l.seconds);
+                      "at the loop before refinement), %zu filaments, %.1f s, about %.0f MiB\n",
+                      m * 1e6, l.window_margin_mm, 100 * l.moment_change, l.triangles, l.element_size_mm, l.filaments, l.seconds, l.memory_mb);
         s << line;
         for (std::size_t j = 0; j < l.stitch_current.size(); ++j) {
             std::snprintf(line, sizeof line, "  stitch %zu carries %.3g of the loop current in the high-frequency limit\n", j + 1, l.stitch_current[j]);

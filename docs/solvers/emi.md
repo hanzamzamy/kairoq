@@ -123,8 +123,15 @@ to 5 % high. The inductance (nH) against the budget, for loops over a plane:
 Below about 10 000 triangles such loops change little from pass to pass while they are
 still several per cent high, so the difference to the previous pass understates the error
 by up to tenfold there; doubling the budget and comparing is the more reliable check. Above
-`dense_matrix_mb` the memory grows linearly with the triangles (1.1, 2.0 and 5.3 GB at
-16 000, 32 000 and 64 000 above).
+`dense_matrix_mb` the partial inductances are not kept, and the memory is that of the loops'
+matrix: $8\,n_l^2$ bytes for $n_l$ loops, about a quarter of the branches. The frequency sweep
+adds two reduced matrices of that size for each copper layer in the window, a complex one
+and a branches-by-loops product, so that it sets the peak (1.1, 2.0 and 5.3 GB at 16 000,
+32 000 and 64 000 triangles above, without the sweep; 2.5 GB at 17 000 triangles over three
+layers with it). Before each pass the memory it needs is estimated (on the safe side, by
+about a third on a real board); a pass that would exceed `max_memory_mb` is not solved, and
+the refinement stops at the previous one, with a warning. A first mesh that does not fit is
+an error. The estimated peak is reported with the result.
 
 ### Resistance and inductance over frequency
 
@@ -293,7 +300,7 @@ emi:
 | key under `emi` | default | meaning |
 | --- | --- | --- |
 | `loops` | | `name`, `elements` (`from`, `to` as `REF.PIN`; `radius_mm` 0.2; `esl_nh` 0), `stitches` (`from`, `to`; `c_nf` 0 for none; `esr_mohm` 0; `esl_nh` 0; `radius_mm` 0.2), `waveform` (`amplitude_a`, `frequency_hz`, `duty` 0.5, `rise_ns`, `fall_ns` = `rise_ns`) |
-| `loop_settings` | | `window_margin_mm` (10), `depth_layers` (2), `via_radius_mm` (3), `passive_min_area_mm2` (10), `min_size_mm` (from the pads), `max_triangles` (4000), `estimate_error` (true), `distance_m` (3), `max_frequency_hz` ($10^9$), `moment_tolerance` (0.05; 0: one window), `max_window_doublings` (3), `dense_matrix_mb` (2048), `frequencies_hz` (none), `plating_um` (25), `field` (`free`; `ground`, `small_loop`), `board_height_m` (0.8), `antenna_heights_m` ([1, 4]) |
+| `loop_settings` | | `window_margin_mm` (10), `depth_layers` (2), `via_radius_mm` (3), `passive_min_area_mm2` (10), `min_size_mm` (from the pads), `max_triangles` (4000), `estimate_error` (true), `distance_m` (3), `max_frequency_hz` ($10^9$), `moment_tolerance` (0.05; 0: one window), `max_window_doublings` (3), `dense_matrix_mb` (2048), `max_memory_mb` (0: 90 % of what the process may use, from the system's available memory or its cgroup's limit), `frequencies_hz` (none), `plating_um` (25), `field` (`free`; `ground`, `small_loop`), `board_height_m` (0.8), `antenna_heights_m` ([1, 4]) |
 | `return_path` | | `true`, or `nets`, `reference_nets`, `plane_fraction` (0.25), `min_area_mm2` (0.002), `pad_clearance_mm` (0.3) |
 | `plates` | | `name`, `face` (`bottom`), `area` (the whole face), `gap_mm` (0), `epsilon_r` (1) |
 | `switch_nodes` | | `net`, `plate`, `dv_dt_v_per_ns` |

@@ -293,7 +293,7 @@ EmiProject parse_emi_project(std::string_view text, const std::string& base_dir)
     if (const auto ls = em["loop_settings"]) {
         check_keys(ls, {"window_margin_mm", "passive_min_area_mm2", "min_size_mm", "max_triangles", "depth_layers", "via_radius_mm",
                         "estimate_error", "distance_m", "max_frequency_hz", "moment_tolerance", "max_window_doublings", "loop_basis",
-                        "frequencies_hz", "plating_um", "field", "board_height_m", "antenna_heights_m", "dense_matrix_mb"},
+                        "frequencies_hz", "plating_um", "field", "board_height_m", "antenna_heights_m", "dense_matrix_mb", "max_memory_mb"},
                    "emi.loop_settings");
         auto& l = s.loop;
         l.window_margin_nm = number(ls, "window_margin_mm", l.window_margin_nm / 1e6) * 1e6;
@@ -315,6 +315,7 @@ EmiProject parse_emi_project(std::string_view text, const std::string& base_dir)
         }
         l.board_height_m = number(ls, "board_height_m", l.board_height_m);
         l.dense_matrix_mb = number(ls, "dense_matrix_mb", l.dense_matrix_mb);
+        l.max_memory_mb = number(ls, "max_memory_mb", l.max_memory_mb);
         if (const auto h = ls["antenna_heights_m"]) {
             const auto v = h.as<std::vector<double>>();
             if (v.size() != 2 || !(v[0] > 0) || v[1] < v[0]) throw std::runtime_error("emi.loop_settings.antenna_heights_m: [lowest, highest]");

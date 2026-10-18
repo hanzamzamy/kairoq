@@ -17,6 +17,8 @@
 #include <cmath>
 #include <version>
 #include <cstring>
+#include <fstream>
+#include <sstream>
 #include <cstdint>
 #include <complex>
 #include <map>
@@ -28,6 +30,54 @@
 namespace kairoq {
 
 namespace {
+
+// A pass whose matrices would exceed the memory limit.
+struct MemoryLimit : std::runtime_error {
+    double need_mb, limit_mb;
+    MemoryLimit(double need, double limit) : std::runtime_error("memory limit"), need_mb(need), limit_mb(limit) {}
+};
+
+// Resident memory of this process (MiB).
+double resident_mb() {
+    std::ifstream f("/proc/self/status");
+    std::string line;
+    while (std::getline(f, line))
+        if (line.rfind("VmRSS:", 0) == 0) return std::stod(line.substr(6)) / 1024.0;
+    return 0.0;
+}
+
+// Memory this process may use in all (MiB): its resident memory and the system's available
+// memory, or the limit of a cgroup it belongs to (cgroup v2) less what the rest of that
+// cgroup holds, whichever is smaller; 0 where neither is known.
+double memory_budget_mb() {
+    const double own = resident_mb();
+    double budget = INFINITY;
+    {
+        std::ifstream f("/proc/meminfo");
+        std::string key, unit;
+        double kb = 0;
+        while (f >> key >> kb >> unit)
+            if (key == "MemAvailable:") budget = own + kb / 1024.0;
+    }
+    std::ifstream cg("/proc/self/cgroup");
+    std::string line;
+    while (std::getline(cg, line)) {
+        if (line.rfind("0::", 0) != 0) continue;
+        std::string path = line.substr(3);
+        for (;;) {
+            std::ifstream fm("/sys/fs/cgroup" + path + "/memory.max"), fc("/sys/fs/cgroup" + path + "/memory.current");
+            std::string max;
+            double current = 0;
+            if (fm >> max && max != "max" && fc >> current)
+                budget = std::min(budget, (std::stod(max) - current) / 1048576.0 + own);
+            if (path.empty() || path == "/") break;
+            const auto k = path.find_last_of('/');
+            path = k == 0 || k == std::string::npos ? std::string("/") : path.substr(0, k);
+        }
+    }
+    return std::isfinite(budget) ? budget : 0.0;
+}
+
 
 // Adds v to x in place, safely against other threads: std::atomic_ref where the standard
 // library has it, otherwise a compare-and-swap on the value's bits (GCC and Clang builtins;
@@ -122,6 +172,7 @@ public:
     // the last mesh through sweep().
     LoopResult run(bool sweep = true);
     std::vector<LoopImpedance> sweep();
+    double memory_mb() const;  // estimated peak of the passes solved so far (MiB)
     LoopGeometry geometry();
 
 private:
@@ -136,6 +187,7 @@ private:
     std::vector<double> zmid_;  // m, per copper layer
     std::vector<std::array<double, 4>> path_;  // segments x0 y0 x1 y1 (nm) of the loop
     double h0_ = 0, hmax_ = 0;
+    double memory_limit_mb_ = 0, memory_mb_ = 0;  // limit of the process, largest estimate of the passes solved (MiB)
     struct Ring {
         std::size_t drill;
         std::vector<int> layers;
@@ -1333,7 +1385,6 @@ double LoopSolver::solve(const Discretisation& D, LoopResult* out, std::vector<s
     for (std::size_t a = 0; a < nf; ++a)
         for (std::size_t c = 0; c < nf; ++c) L[(nr + a) * nb + nr + c] = FF[a * nf + c];
     };
-    if (!streamed) assemble();
 
     // Kirchhoff's current law: an RWG current leaves one triangle and enters another; a
     // filament takes its current from its first set of triangles and returns it to the second.
@@ -1373,6 +1424,27 @@ double LoopSolver::solve(const Discretisation& D, LoopResult* out, std::vector<s
         });
         if (!joined) throw std::runtime_error("loop " + loop_.name + " is open: no copper path joins its elements");
     }
+    // Memory of the pass, before anything large is allocated: what the process holds, the
+    // loops' matrix (one loop
+    // per branch outside a spanning forest of the node graph), the dense partial inductances
+    // and their product with the loops when not streamed, and for the frequency sweep the
+    // two reduced matrices of each copper layer and the complex system.
+    {
+        std::size_t ncomp = 0;
+        for (std::size_t v = 0; v < D.nnodes; ++v) ncomp += uf.find(v) == v;
+        const double nl = double(nb - 1) - double(D.nnodes - ncomp);
+        std::set<int> layers;
+        for (const auto& j : jobs_) layers.insert(j.first);
+        const bool sweeping = sweep && !s_.frequencies_hz.empty();
+        const double sweep_terms = sweeping ? 2.0 + 2.0 * double(layers.size()) : 0.0;
+        // Streamed, the blocks of rows (each up to 256 MB, with its product with the loops);
+        // the sweep reduces each layer's Gram matrix through a branches x loops product.
+        const double need = resident_mb() + 8.0 / 1048576.0 * (nl * nl * (1.0 + sweep_terms) + (sweeping ? double(nb) * nl : 0.0) +
+                                                               (streamed ? 2.0 * 256e6 / 8.0 : double(nb) * double(nb) + double(nb) * nl));
+        if (memory_limit_mb_ > 0 && need > memory_limit_mb_) throw MemoryLimit(need, memory_limit_mb_);
+        memory_mb_ = std::max(memory_mb_, need);
+    }
+    if (!streamed) assemble();
     // Free branches: all but the source, re-indexed.
     const std::size_t nF = nb - 1;
     auto fidx = [&](std::size_t k) { return k < src ? k : k - 1; };
@@ -1571,6 +1643,8 @@ LoopResult LoopSolver::run(bool sweep) {
     LoopResult res;
     res.name = loop_.name;
     setup();
+    memory_limit_mb_ = s_.max_memory_mb > 0 ? s_.max_memory_mb : 0.9 * memory_budget_mb();
+    memory_mb_ = 0;
     for (const auto& e : loop_.elements) res.element_inductance_nh += e.extra_inductance_nh;
     // The first mesh from the a-priori size field, with about a quarter of the triangle
     // budget; then adaptive passes, each refining where the recovered sheet current
@@ -1605,12 +1679,39 @@ LoopResult LoopSolver::run(bool sweep) {
         throw std::runtime_error("loop " + loop_.name + ": the copper around the loop needs " + std::to_string(D.tris.size()) +
                                  " triangles at the coarsest size; reduce window_margin_mm or raise max_triangles");
     std::vector<double> history;
+    Discretisation previous;
     for (int pass = 0;; ++pass) {
         LoopResult r;
         std::vector<std::array<double, 2>> sheet;
         // The frequency sweep on the last pass only: the budget is reached or the passes end.
         const bool last = sweep && (pass >= 7 || D.tris.size() >= 0.7 * s_.max_triangles);
-        const double ind = solve(D, &r, &sheet, last);
+        double ind = 0;
+        try {
+            ind = solve(D, &r, &sheet, last);
+        } catch (const MemoryLimit& e) {
+            char msg[320];
+            std::snprintf(msg, sizeof msg, "%zu triangles, whose matrices need about %.0f MiB, above the memory limit of %.0f MiB (loop_settings.max_memory_mb)",
+                          D.tris.size(), e.need_mb, e.limit_mb);
+            if (pass == 0)
+                throw std::runtime_error("loop " + loop_.name + ": the first mesh has " + msg + "; lower max_triangles or window_margin_mm");
+            // The refinement stops at the previous pass, solved again with the frequency sweep.
+            D = std::move(previous);
+            res.warnings.push_back(std::string("refinement stopped: the next pass has ") + msg);
+            if (sweep && !s_.frequencies_hz.empty()) {
+                LoopResult r2;
+                std::vector<std::array<double, 2>> sheet2;
+                try {
+                    history.back() = solve(D, &r2, &sheet2, true);
+                    r2.name = res.name;
+                    r2.element_inductance_nh = res.element_inductance_nh;
+                    r2.warnings.insert(r2.warnings.begin(), res.warnings.begin(), res.warnings.end());
+                    res = std::move(r2);
+                } catch (const MemoryLimit&) {
+                    res.warnings.push_back("no frequency sweep: it would exceed the memory limit");
+                }
+            }
+            break;
+        }
         history.push_back(ind);
         r.name = res.name;
         r.element_inductance_nh = res.element_inductance_nh;
@@ -1653,10 +1754,12 @@ LoopResult LoopSolver::run(bool sweep) {
         const std::size_t cap = std::min(s_.max_triangles, static_cast<std::size_t>(2.2 * nt));
         const std::size_t marked = mark_and_seed(parts, total, energy, 1e-3, nt, cap, 0.02 * h0_ * scale, seeds, budget);
         if (marked == 0) break;
+        previous = D;
         D = discretise(seeds, scale);
     }
     last_ = std::move(D);
     res.inductance_nh = history.back() * 1e9;
+    res.memory_mb = memory_mb_;
     res.element_size_mm = h0_ * scale * 1e-6;
     if (at_coarsest) res.warnings.push_back(coarse);
     if (s_.estimate_error && history.size() >= 2) res.inductance_coarse_nh = history[history.size() - 2] * 1e9;
@@ -1705,6 +1808,8 @@ std::vector<LoopImpedance> LoopSolver::sweep() {
     return r.impedance;
 }
 
+double LoopSolver::memory_mb() const { return memory_mb_; }
+
 }  // namespace
 
 LoopGeometry detail::loop_geometry(const Board& board, const LoopSpec& loop, const LoopSettings& settings) {
@@ -1732,6 +1837,7 @@ LoopResult solve_loop(const Board& board, const LoopSpec& loop, const LoopSettin
         s.window_margin_nm *= 2;
         solver = std::make_unique<LoopSolver>(board, loop, s);
         LoopResult g = solver->run(false);
+        g.memory_mb = std::max(g.memory_mb, r.memory_mb);
         const bool same_window = std::abs(g.window_area_mm2 - r.window_area_mm2) <= 1e-6 * r.window_area_mm2;
         const double d = std::sqrt(std::pow(g.moment_m2[0] - r.moment_m2[0], 2) + std::pow(g.moment_m2[1] - r.moment_m2[1], 2) +
                                    std::pow(g.moment_m2[2] - r.moment_m2[2], 2));
@@ -1742,7 +1848,19 @@ LoopResult solve_loop(const Board& board, const LoopSpec& loop, const LoopSettin
             break;
         }
     }
-    if (!settings.frequencies_hz.empty()) r.impedance = solver->sweep();
+    double peak = r.memory_mb;
+    if (!settings.frequencies_hz.empty()) {
+        try {
+            r.impedance = solver->sweep();
+        } catch (const MemoryLimit& e) {
+            char text[240];
+            std::snprintf(text, sizeof text, "no frequency sweep: it needs about %.0f MiB, above the memory limit of %.0f MiB (loop_settings.max_memory_mb)",
+                          e.need_mb, e.limit_mb);
+            r.warnings.push_back(text);
+        }
+        peak = std::max(peak, solver->memory_mb());
+    }
+    r.memory_mb = peak;
     radiate(r, loop, settings);
     if (!converged) {
         char text[200];
